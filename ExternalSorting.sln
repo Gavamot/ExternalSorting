@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExternalSorting", "ExternalSorting\ExternalSorting.csproj", "{AEC55F44-5BCE-4C9E-BB5C-06CC5B8F955B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExternalSorting.Test", "ExternalSorting.Test\ExternalSorting.Test.csproj", "{47CFF619-B7D0-4D4A-A3A6-E291FE1145A1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AEC55F44-5BCE-4C9E-BB5C-06CC5B8F955B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEC55F44-5BCE-4C9E-BB5C-06CC5B8F955B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEC55F44-5BCE-4C9E-BB5C-06CC5B8F955B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEC55F44-5BCE-4C9E-BB5C-06CC5B8F955B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47CFF619-B7D0-4D4A-A3A6-E291FE1145A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47CFF619-B7D0-4D4A-A3A6-E291FE1145A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47CFF619-B7D0-4D4A-A3A6-E291FE1145A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47CFF619-B7D0-4D4A-A3A6-E291FE1145A1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
