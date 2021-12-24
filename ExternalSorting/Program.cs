@@ -1,3 +1,3 @@
-﻿
+﻿using ExternalSorting;
 
-Console.WriteLine("Hello, World!");
+Console.WriteLine("Hello");

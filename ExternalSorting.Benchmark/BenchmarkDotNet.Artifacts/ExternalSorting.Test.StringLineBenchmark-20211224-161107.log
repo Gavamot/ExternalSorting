@@ -1,0 +1,140 @@
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 1 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet restore  /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true in C:\dev\ExternalSorting\ExternalSorting.Benchmark\bin\Release\net6.0\5d0ff55f-50dc-47e0-a509-8e56c066f958
+// command took 2.47s and exited with 0
+// start dotnet build -c Release  --no-restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true in C:\dev\ExternalSorting\ExternalSorting.Benchmark\bin\Release\net6.0\5d0ff55f-50dc-47e0-a509-8e56c066f958
+// command took 3.76s and exited with 0
+// ***** Done, took 00:00:06 (6.36 sec)   *****
+// Found 1 benchmarks:
+//   StringLineBenchmark.TestBenchMark: DefaultJob
+
+// **************************
+// Benchmark: StringLineBenchmark.TestBenchMark: DefaultJob
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet "5d0ff55f-50dc-47e0-a509-8e56c066f958.dll" --benchmarkName "ExternalSorting.Test.StringLineBenchmark.TestBenchMark" --job "Default" --benchmarkId 0 in C:\dev\ExternalSorting\ExternalSorting.Benchmark\bin\Release\net6.0\5d0ff55f-50dc-47e0-a509-8e56c066f958\bin\Release\net6.0
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// Runtime=.NET 6.0.0 (6.0.21.52210), X64 RyuJIT
+// GC=Concurrent Workstation
+// Job: DefaultJob
+
+OverheadJitting  1: 1 op, 271600.00 ns, 271.6000 us/op
+WorkloadJitting  1: 1 op, 56996300.00 ns, 56.9963 ms/op
+
+WorkloadPilot    1: 2 op, 107541100.00 ns, 53.7706 ms/op
+WorkloadPilot    2: 3 op, 166263900.00 ns, 55.4213 ms/op
+WorkloadPilot    3: 4 op, 216999300.00 ns, 54.2498 ms/op
+WorkloadPilot    4: 5 op, 271348400.00 ns, 54.2697 ms/op
+WorkloadPilot    5: 6 op, 320693100.00 ns, 53.4489 ms/op
+WorkloadPilot    6: 7 op, 376046500.00 ns, 53.7209 ms/op
+WorkloadPilot    7: 8 op, 431281200.00 ns, 53.9102 ms/op
+WorkloadPilot    8: 9 op, 481120300.00 ns, 53.4578 ms/op
+WorkloadPilot    9: 10 op, 543534900.00 ns, 54.3535 ms/op
+
+WorkloadWarmup   1: 10 op, 535662100.00 ns, 53.5662 ms/op
+WorkloadWarmup   2: 10 op, 537780500.00 ns, 53.7781 ms/op
+WorkloadWarmup   3: 10 op, 534405300.00 ns, 53.4405 ms/op
+WorkloadWarmup   4: 10 op, 534646600.00 ns, 53.4647 ms/op
+WorkloadWarmup   5: 10 op, 531873400.00 ns, 53.1873 ms/op
+WorkloadWarmup   6: 10 op, 533559300.00 ns, 53.3559 ms/op
+
+// BeforeActualRun
+WorkloadActual   1: 10 op, 530901800.00 ns, 53.0902 ms/op
+WorkloadActual   2: 10 op, 531128600.00 ns, 53.1129 ms/op
+WorkloadActual   3: 10 op, 537416800.00 ns, 53.7417 ms/op
+WorkloadActual   4: 10 op, 535022100.00 ns, 53.5022 ms/op
+WorkloadActual   5: 10 op, 533826600.00 ns, 53.3827 ms/op
+WorkloadActual   6: 10 op, 530766200.00 ns, 53.0766 ms/op
+WorkloadActual   7: 10 op, 530519500.00 ns, 53.0520 ms/op
+WorkloadActual   8: 10 op, 528935600.00 ns, 52.8936 ms/op
+WorkloadActual   9: 10 op, 532228100.00 ns, 53.2228 ms/op
+WorkloadActual  10: 10 op, 528406300.00 ns, 52.8406 ms/op
+WorkloadActual  11: 10 op, 531967200.00 ns, 53.1967 ms/op
+WorkloadActual  12: 10 op, 531563100.00 ns, 53.1563 ms/op
+WorkloadActual  13: 10 op, 529191900.00 ns, 52.9192 ms/op
+WorkloadActual  14: 10 op, 529770000.00 ns, 52.9770 ms/op
+WorkloadActual  15: 10 op, 530841600.00 ns, 53.0842 ms/op
+
+// AfterActualRun
+WorkloadResult   1: 10 op, 530901800.00 ns, 53.0902 ms/op
+WorkloadResult   2: 10 op, 531128600.00 ns, 53.1129 ms/op
+WorkloadResult   3: 10 op, 535022100.00 ns, 53.5022 ms/op
+WorkloadResult   4: 10 op, 533826600.00 ns, 53.3827 ms/op
+WorkloadResult   5: 10 op, 530766200.00 ns, 53.0766 ms/op
+WorkloadResult   6: 10 op, 530519500.00 ns, 53.0520 ms/op
+WorkloadResult   7: 10 op, 528935600.00 ns, 52.8936 ms/op
+WorkloadResult   8: 10 op, 532228100.00 ns, 53.2228 ms/op
+WorkloadResult   9: 10 op, 528406300.00 ns, 52.8406 ms/op
+WorkloadResult  10: 10 op, 531967200.00 ns, 53.1967 ms/op
+WorkloadResult  11: 10 op, 531563100.00 ns, 53.1563 ms/op
+WorkloadResult  12: 10 op, 529191900.00 ns, 52.9192 ms/op
+WorkloadResult  13: 10 op, 529770000.00 ns, 52.9770 ms/op
+WorkloadResult  14: 10 op, 530841600.00 ns, 53.0842 ms/op
+GC:  0 0 0 480 10
+Threading:  0 0 10
+
+// AfterAll
+// Benchmark Process 15816 has exited with code 0.
+
+Mean = 53.108 ms, StdErr = 0.049 ms (0.09%), N = 14, StdDev = 0.182 ms
+Min = 52.841 ms, Q1 = 52.996 ms, Median = 53.087 ms, Q3 = 53.187 ms, Max = 53.502 ms
+IQR = 0.191 ms, LowerFence = 52.709 ms, UpperFence = 53.473 ms
+ConfidenceInterval = [52.903 ms; 53.313 ms] (CI 99.9%), Margin = 0.205 ms (0.39% of Mean)
+Skewness = 0.55, Kurtosis = 2.55, MValue = 2
+
+// ***** BenchmarkRunner: Finish  *****
+
+// * Export *
+  BenchmarkDotNet.Artifacts\results\ExternalSorting.Test.StringLineBenchmark-report.csv
+  BenchmarkDotNet.Artifacts\results\ExternalSorting.Test.StringLineBenchmark-report-github.md
+  BenchmarkDotNet.Artifacts\results\ExternalSorting.Test.StringLineBenchmark-report.html
+
+// * Detailed results *
+StringLineBenchmark.TestBenchMark: DefaultJob
+Runtime = .NET 6.0.0 (6.0.21.52210), X64 RyuJIT; GC = Concurrent Workstation
+Mean = 53.108 ms, StdErr = 0.049 ms (0.09%), N = 14, StdDev = 0.182 ms
+Min = 52.841 ms, Q1 = 52.996 ms, Median = 53.087 ms, Q3 = 53.187 ms, Max = 53.502 ms
+IQR = 0.191 ms, LowerFence = 52.709 ms, UpperFence = 53.473 ms
+ConfidenceInterval = [52.903 ms; 53.313 ms] (CI 99.9%), Margin = 0.205 ms (0.39% of Mean)
+Skewness = 0.55, Kurtosis = 2.55, MValue = 2
+-------------------- Histogram --------------------
+[52.742 ms ; 53.601 ms) | @@@@@@@@@@@@@@
+---------------------------------------------------
+
+// * Summary *
+
+BenchmarkDotNet=v0.13.1, OS=Windows 10.0.18363.1316 (1909/November2019Update/19H2)
+AMD FX(tm)-8300, 1 CPU, 8 logical and 4 physical cores
+.NET SDK=6.0.100
+  [Host]     : .NET 6.0.0 (6.0.21.52210), X64 RyuJIT
+  DefaultJob : .NET 6.0.0 (6.0.21.52210), X64 RyuJIT
+
+
+|        Method |     Mean |    Error |   StdDev | Allocated |
+|-------------- |---------:|---------:|---------:|----------:|
+| TestBenchMark | 53.11 ms | 0.205 ms | 0.182 ms |      48 B |
+
+// * Hints *
+Outliers
+  StringLineBenchmark.TestBenchMark: Default -> 1 outlier  was  removed (53.74 ms)
+
+// * Legends *
+  Mean      : Arithmetic mean of all measurements
+  Error     : Half of 99.9% confidence interval
+  StdDev    : Standard deviation of all measurements
+  Allocated : Allocated memory per single operation (managed only, inclusive, 1KB = 1024B)
+  1 ms      : 1 Millisecond (0.001 sec)
+
+// * Diagnostic Output - MemoryDiagnoser *
+
+
+// ***** BenchmarkRunner: End *****
+// ** Remained 0 benchmark(s) to run **
+Run time: 00:00:26 (26.08 sec), executed benchmarks: 1
+
+Global total time: 00:00:32 (32.45 sec), executed benchmarks: 1
+// * Artifacts cleanup *
