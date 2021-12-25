@@ -1,14 +1,13 @@
-using System;
-using System.Linq;
 using System.Text;
 using BenchmarkDotNet.Attributes;
+using Domain;
 
 namespace ExternalSorting.Test;
 
 [MemoryDiagnoser]
 public class StringLineBenchmark
 {
-    private const int Size = 1000000;
+    private const int Size = 60000;
     private readonly StringLine[] data = new StringLine[Size];
 
     private static Random random = new Random(67434334);
@@ -26,13 +25,18 @@ public class StringLineBenchmark
         return new StringLine(Encoding.ASCII.GetBytes($"{num}.{str}"));
     }
     
-    public StringLineBenchmark()
+    private static void GenerateLines(StringLine[] data)
     {
-        var v = new Random(4535453);
         for (int i = 0; i < Size; i++)
         {
             data[i] = GetRandomStringLine();
         }
+    }
+    
+    public StringLineBenchmark()
+    {
+        var v = new Random(4535453);
+        GenerateLines(data);
     }
     
     [Benchmark]

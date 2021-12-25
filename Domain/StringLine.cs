@@ -1,9 +1,34 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace ExternalSorting;
+namespace Domain;
+
+public static class StringLineFileWriterExt
+{
+     public static void WriteToFile(this StringLine[] lines, string filePath, int bufferSize)
+     {
+          using var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None);
+          var ln = lines.Length;
+          for (int i = 0; i < ln; i++)
+          { 
+               stream.Write(lines[i].Line);
+          }
+          stream.Flush();
+     }
+     public static void WriteToFile(this IEnumerable<StringLine> lines, string filePath, int bufferSize)
+     {
+          using var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None);
+          foreach (var line in lines)
+          { 
+               stream.Write(line.Line);
+          }
+          stream.Flush();
+     }
+}
 
 public record StringLine
 {
+     static readonly int NewLineLength = Environment.NewLine.Length;
+     
      public StringLine(byte[] line)
      {
           Line = line;
@@ -11,6 +36,8 @@ public record StringLine
      
      public readonly byte[] Line;
 
+     public bool IsMore(StringLine obj) => CompareTo(obj) > 0;
+     
      // I a'm sorry for that code works only for ASCII and String must have only first letter in UpperCase
      // Dont use IComparable for avoid boxing/unboxing operations
      public int CompareTo(StringLine obj)
@@ -24,8 +51,10 @@ public record StringLine
           
           // CompareStrings
           // String must have only first letter in UpperCase
-          int strLn1 = ln1 - ds1;
-          int strLn2 = ln2 - ds2;
+          // -1 \n
+          
+          int strLn1 = ln1 - ds1 - NewLineLength;
+          int strLn2 = ln2 - ds2 - NewLineLength;
           int minSize = Math.Min(strLn1, strLn2);
           for (int i = 1; i < minSize; i++)
           {
@@ -65,4 +94,9 @@ public record StringLine
           }
           throw new Exception("Can not find string parts separator. Check the source file for correct");
      }
+     
+     public static bool operator <=(StringLine a, StringLine b) => a.CompareTo(b) <= 0;
+     public static bool operator >=(StringLine a, StringLine b) => a.CompareTo(b) >= 0;
+     public static bool operator >(StringLine a, StringLine b) => a.CompareTo(b) > 0;
+     public static bool operator <(StringLine a, StringLine b)  => a.CompareTo(b) < 0;
 }

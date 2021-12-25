@@ -6,6 +6,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExternalSorting.Test", "Ext
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExternalSorting.Benchmark", "ExternalSorting.Benchmark\ExternalSorting.Benchmark.csproj", "{4081AE49-4C71-47D3-8E39-5DE1B1E3AD61}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExternalSortingGen", "ExternalSortingGen\ExternalSortingGen.csproj", "{BB834379-157F-4B23-80BF-ABF6B4C56506}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "Domain\Domain.csproj", "{F07258FF-973D-41C3-B06E-7B31327D297F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +28,13 @@ Global
 		{4081AE49-4C71-47D3-8E39-5DE1B1E3AD61}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4081AE49-4C71-47D3-8E39-5DE1B1E3AD61}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4081AE49-4C71-47D3-8E39-5DE1B1E3AD61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB834379-157F-4B23-80BF-ABF6B4C56506}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB834379-157F-4B23-80BF-ABF6B4C56506}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB834379-157F-4B23-80BF-ABF6B4C56506}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB834379-157F-4B23-80BF-ABF6B4C56506}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F07258FF-973D-41C3-B06E-7B31327D297F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F07258FF-973D-41C3-B06E-7B31327D297F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F07258FF-973D-41C3-B06E-7B31327D297F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F07258FF-973D-41C3-B06E-7B31327D297F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

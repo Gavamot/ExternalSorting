@@ -8,6 +8,6 @@ AMD FX(tm)-8300, 1 CPU, 8 logical and 4 physical cores
 
 
 ```
-|        Method |     Mean |    Error |   StdDev | Allocated |
-|-------------- |---------:|---------:|---------:|----------:|
-| TestBenchMark | 53.11 ms | 0.205 ms | 0.182 ms |      48 B |
+|        Method |     Mean |     Error |    StdDev | Allocated |
+|-------------- |---------:|----------:|----------:|----------:|
+| TestBenchMark | 2.895 ms | 0.0231 ms | 0.0181 ms |       2 B |

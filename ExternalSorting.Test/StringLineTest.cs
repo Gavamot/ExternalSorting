@@ -1,4 +1,5 @@
 using System.Text;
+using Domain;
 using NUnit.Framework;
 
 namespace ExternalSorting.Test;
@@ -30,5 +31,5 @@ public class StringLineTest
     [TestCase("1.A", "1.Ap", 1)]
     [TestCase("1.Ap", "1.A", -1)]
     public void TestLetters(string line1, string line2, int expected) => TestCompare(line1, line2, expected);
-    
+
 }

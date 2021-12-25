@@ -2,7 +2,7 @@
 <html lang='en'>
 <head>
 <meta charset='utf-8' />
-<title>ExternalSorting.Test.StringLineBenchmark-20211224-231602</title>
+<title>ExternalSorting.Benchmark.HeapSortBenchmark-20211224-232511</title>
 
 <style type="text/css">
 	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
@@ -22,9 +22,11 @@ AMD FX(tm)-8300, 1 CPU, 8 logical and 4 physical cores
 <pre><code></code></pre>
 
 <table>
-<thead><tr><th> Method</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Allocated</th>
+<thead><tr><th>Method</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Median</th><th>Gen 0</th><th>Allocated</th>
 </tr>
-</thead><tbody><tr><td>TestBenchMark</td><td>2.895 ms</td><td>0.0231 ms</td><td>0.0181 ms</td><td>2 B</td>
+</thead><tbody><tr><td>HeapSort</td><td>413.1 ms</td><td>6.25 ms</td><td>5.85 ms</td><td>415.2 ms</td><td>-</td><td>480 B</td>
+</tr><tr><td>MergeSort</td><td>1,581.3 ms</td><td>21.20 ms</td><td>17.70 ms</td><td>1,587.5 ms</td><td>30000.0000</td><td>183,611,848 B</td>
+</tr><tr><td>TimSort</td><td>1,581.8 ms</td><td>61.12 ms</td><td>176.34 ms</td><td>1,513.9 ms</td><td>17000.0000</td><td>121,344,784 B</td>
 </tr></tbody></table>
 </body>
 </html>
