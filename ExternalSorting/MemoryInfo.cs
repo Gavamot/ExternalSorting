@@ -4,6 +4,8 @@ namespace ExternalSorting
 {
     internal static class MemoryInfo
     {
+       
+        
         static MemoryInfo()
         {
             Reset();

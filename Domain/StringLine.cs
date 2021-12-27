@@ -27,8 +27,6 @@ public static class StringLineFileWriterExt
 
 public record StringLine
 {
-     static readonly int NewLineLength = Environment.NewLine.Length;
-     
      public StringLine(byte[] line)
      {
           Line = line;
@@ -53,8 +51,8 @@ public record StringLine
           // String must have only first letter in UpperCase
           // -1 \n
           
-          int strLn1 = ln1 - ds1 - NewLineLength;
-          int strLn2 = ln2 - ds2 - NewLineLength;
+          int strLn1 = ln1 - ds1;
+          int strLn2 = ln2 - ds2;
           int minSize = Math.Min(strLn1, strLn2);
           for (int i = 1; i < minSize; i++)
           {

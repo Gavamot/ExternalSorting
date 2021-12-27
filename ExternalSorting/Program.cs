@@ -1,3 +1,10 @@
-﻿using System.Diagnostics;
+﻿using System.Buffers;
+using System.Diagnostics;
+using System.Text;
+using Domain;
+using ExternalSorting;
 
-Console.WriteLine(111);
+
+var chunkProducer = new ChunkProducer(); 
+
+Console.ReadKey();

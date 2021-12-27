@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using Domain;
 
 namespace ExternalSortingGen;
 
@@ -10,30 +9,28 @@ public static class Generator
         "Cherry is the best",
         "Banana is yellow",
         "Apple",
-        "Blueberry is better than the best. It's a fact. Nobody can argue with that",
+        "Blueberry is better than the best",
         "Strawberry is very delicious",
         "Pineapple is sweet and tasty",
         "What you see is what you get"
     };
     
-    private static StringLine GetRandomStringLine(Random rnd)
+    public static void WriteToFile(string path, ulong count, int butchSize)
     {
-        var num = rnd.Next(0, 10000);
-        var str = strArray[rnd.Next(0, strArray.Length)];
-        return new StringLine(Encoding.ASCII.GetBytes($"{num}.{str}{Environment.NewLine}"));
-    }
-
-    public static IEnumerable<StringLine> GenerateLines(ulong size, int seed = 123)
-    {
-        var rnd = new Random(seed);
-        for (ulong i = 0; i < size; i++)
+        ulong done = 0;
+        var rnd = new Random(123);
+        while (done < count)
         {
-           yield return GetRandomStringLine(rnd);
+            ulong rest = count - done;
+            int need = (int) (rest > (ulong) butchSize ? (ulong) butchSize : rest);
+
+            var str = new StringBuilder();
+            for (int i = 0; i < need; i++)
+            {
+                str.Append($"{rnd.Next(0, 10000)}.{strArray[rnd.Next(0, strArray.Length)]}");
+            }
+            File.AppendAllText(path, str.ToString(), Encoding.ASCII);
+            done += (ulong) need;
         }
     }
-
-    public static StringLine[] GenerateLinesArray(int size, int seed = 123) => GenerateLines((ulong)size, seed).ToArray();
-    
-    public static StringLine[] ReadFromFile(string filePath)
-        => File.ReadAllLines(filePath).Select(x=> new StringLine(Encoding.ASCII.GetBytes(x))).ToArray();
 }

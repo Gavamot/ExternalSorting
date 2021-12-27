@@ -1,17 +1,24 @@
+﻿using System;
+using System.Linq;
 using System.Text;
 using Domain;
 using NUnit.Framework;
 
 namespace ExternalSorting.Test;
 
-public class StringLineTest
+public class StringLineOptimalTest
 {
-    private static StringLine CreateStr(string str) => new StringLine(Encoding.ASCII.GetBytes(str));
+    private static (StringLineOptimal str1, StringLineOptimal str2) CreateStr(string str, string str2)
+    {
+        var arr1 = Encoding.ASCII.GetBytes(str + Environment.NewLine);
+        var arr2 = Encoding.ASCII.GetBytes(str2 + Environment.NewLine);
+        var line = arr1.Concat(arr2).ToArray();
+        return (new StringLineOptimal(line,0, arr1.LongLength - 1), new StringLineOptimal(line, arr1.Length, arr1.Length + arr2.Length - 1));
+    }
 
     private void TestCompare(string line1, string line2, int expected)
     {
-        var str1 = CreateStr(line1);
-        var str2 = CreateStr(line2);
+        var (str1, str2) = CreateStr(line1, line2);
         var actual = str1.CompareTo(str2);
         Assert.AreEqual(expected, actual);
     }
@@ -31,4 +38,5 @@ public class StringLineTest
     [TestCase("1.A", "1.Ap", 1)]
     [TestCase("1.Ap", "1.A", -1)]
     public void TestLetters(string line1, string line2, int expected) => TestCompare(line1, line2, expected);
+
 }

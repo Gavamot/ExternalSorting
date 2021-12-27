@@ -3,5 +3,6 @@
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.StringLineTest&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.SortingTest&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.StringLineOptimalTest&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
