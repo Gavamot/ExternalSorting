@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Domain;
 using ExternalSortingGen;
 using NUnit.Framework;
@@ -17,7 +16,7 @@ public class SortingTest
         return t.ElapsedMilliseconds;
     }
 
-    private List<StringLine[]> GenerateChunkArray(int chunkSize, int chunkCount)
+    /*private List<StringLine[]> GenerateChunkArray(int chunkSize, int chunkCount)
     {
         var dataArr = new List<StringLine[]>();
         for (int i = 0; i < chunkCount; i++)
@@ -57,7 +56,7 @@ public class SortingTest
         var res = t.ElapsedMilliseconds;
         Console.WriteLine($"END {name} - {res}");
         return res;
-    }
+    }*/
     
     /*[Test]
     public void TestSorting()

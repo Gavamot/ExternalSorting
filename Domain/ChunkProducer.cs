@@ -1,8 +1,5 @@
 ﻿using System.Buffers;
-using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Text;
-using System;
 
 namespace Domain;
 
@@ -19,122 +16,135 @@ public class ChunkProducer
     {
         this.sourcePath = sourcePath;
         this.chunkSize = chunkSize;
-        this.maxProduce = maxProduce;
+        this.chunkWriter = new ChunkWriter(maxProduce);
     }
 
     private readonly int chunkSize; 
     private readonly string sourcePath;
-    private readonly int maxProduce;
-    
-    private volatile int produce;
-    
+    private readonly ChunkWriter chunkWriter;
     const int AsciiStringLineEnd = 10;
 
     private int number = 1;
-    string ChunkName => $"./chunks/chunk_{number++}.txt";
-
-    public void Start() => Task.Factory.StartNew(StartAsync, TaskCreationOptions.LongRunning).Start();
-    
-    async Task StartAsync()
+    private const string ChunksFolder = "./chunks";
+    string ChunkName => $"{ChunksFolder}/chunk_{number++}.txt";
+    public async Task<IEnumerable<Chunk>> CreateChunks()
     {
-        var file = new FileInfo(sourcePath);
-        var maxLength = file.Length;
+        try
+        {
+            if(Directory.Exists(ChunksFolder)) Directory.Delete(ChunksFolder);
+            Directory.CreateDirectory(ChunksFolder);
+        }
+        catch (Exception e)
+        {
+            await Console.Error.WriteLineAsync($"Problems connected with work folder creation {ChunksFolder} There may be problems with the operation of the program. Try to reboot your pc and run this program with administrator privileges.");
+        }
 
+        List<Chunk> res = new();
+        
         await using FileStream fr = new(sourcePath, FileMode.Open, FileAccess.Read);
         
         const int maxStringLength = 128;
         int bufSize = chunkSize - maxStringLength;
-        int lastBufferIndex = bufSize - 1; 
         
-        var buf1 = ArrayPool<byte>.Shared.Rent(chunkSize);
+        var buf1 = ArrayPool<byte>.Shared.Rent(chunkSize); // https://adamsitnik.com/Array-Pool/
         int cur = 0;
-        await fr.ReadAsync(buf1.AsMemory(cur, bufSize));
+        int buf1Red = await fr.ReadAsync(buf1 , 0, bufSize);
         
         Chunk chunk = new()
         {
             Line = buf1,
-            Start = cur,
+            Start = 0,
             Path = ChunkName
         };
-        
-        cur += bufSize;
+        res.Add(chunk);
         
         int startNextChunk = 0;
-        int haveRed = 0;
-        while (cur < maxLength)
+        
+        while (buf1Red > 0)
         {
-            while (produce >= maxProduce)
-            {
-                await Task.Delay(1);
-            }
+            await chunkWriter.WaitProduce();
             
             var buf2 = ArrayPool<byte>.Shared.Rent(chunkSize);
-            haveRed = await fr.ReadAsync(buf2.AsMemory(cur, bufSize));
+            var buf2Red = await fr.ReadAsync(buf2, 0, bufSize);
             
-            if (buf1[lastBufferIndex] != AsciiStringLineEnd)
+            startNextChunk = 0;
+            if (buf1[buf1Red - 1] != AsciiStringLineEnd)
             {
                 // Complete our Chunk copy packet end to start
-                while (startNextChunk < haveRed)
+                while (startNextChunk < buf2Red)
                 {
-                    if (buf2[startNextChunk] == AsciiStringLineEnd)
+                    if (buf2[startNextChunk++] == AsciiStringLineEnd)
                     {
-                        Array.Copy(buf2, 0, buf1, bufSize, startNextChunk + 1);
+                        Array.Copy(buf2, 0, buf1, bufSize, startNextChunk);
                         break;
                     }
-                    startNextChunk++;
                 }
             }
-            
-            chunk.End = haveRed + startNextChunk - 1;
-            // Execute task on separate thread
-            
-            SortChunkAndWriteToDisk(chunk);
 
+            chunk.End = buf1Red + startNextChunk - 1;
+            // Execute task on separate thread
+
+            chunkWriter.SortChunkAndWriteToDisk(chunk);
+            
             chunk = new Chunk()
             {
                 Start = startNextChunk,
                 Line = buf2,
                 Path = ChunkName
             };
+            res.Add(chunk);
             
-            cur += bufSize;
             buf1 = buf2;
+            buf1Red = buf2Red;
         }
         
-        chunk.End = haveRed + startNextChunk - 1;
-        SortChunkAndWriteToDisk(chunk);
+        chunk.End =  buf1Red + startNextChunk - 1;
+        
+        if(chunk.Length > 2) chunkWriter.SortChunkAndWriteToDisk(chunk);
+        await chunkWriter.WaitWhenAllTaskCompleted();
+        return res;
     }
     
-    async Task InnerSortChunkAndWriteToDisk(object? chunkObj)
-    {
-        var chunk = chunkObj as Chunk ?? throw new ArgumentException("Chunk can not be null");
-        Interlocked.Increment(ref produce);
-        chunk.SortLine();
-        await chunk.WriteToDiskAsync();
-        chunk.Dispose();
-        Interlocked.Decrement(ref produce);
-    }
-    
-    void SortChunkAndWriteToDisk(Chunk chunc) =>
-        Task.Factory.StartNew(InnerSortChunkAndWriteToDisk, chunc, TaskCreationOptions.LongRunning).Start();
-}
 
-public class ExternalSorter
-{
-    public void Sort(string path, int chunkSize)
+    private class ChunkWriter
     {
-        int chunksCount = Environment.ProcessorCount;
-        var fileInfo = new FileInfo(path);
-        // ! Проверить на наличие
-
-        /*using (FileStream fsSource = new FileStream(pathSource, FileMode.Open, FileAccess.Read))
+        public ChunkWriter(int maxProduce)
         {
+            this.maxProduce = maxProduce;
+        }
+        
+        private readonly int maxProduce;
+        private volatile int produce;
+        
+        private List<Task> Tasks = new ();
+        public void SortChunkAndWriteToDisk(Chunk chunk)
+        {
+            var t = Task.Factory.StartNew(async () =>
+            {
+                var sw = Stopwatch.StartNew();
             
-        }*/
+                Interlocked.Increment(ref produce);
+                chunk.SortLine();
+                await chunk.WriteToDiskAsync();
+                chunk.Dispose();
+                Interlocked.Decrement(ref produce);
+            
+                sw.Stop();
+                Console.WriteLine($"{chunk.Path} had been created - {sw.ElapsedMilliseconds} ms");
+            }, TaskCreationOptions.LongRunning);
+            Tasks.Add(t);
+        }
+        
+        public async Task WaitProduce()
+        {
+            while (produce >= maxProduce)
+            {
+                await Task.Delay(1);
+            }
+        }
+        public Task WaitWhenAllTaskCompleted() => Task.WhenAll(Tasks);
     }
 }
-
-
 
 public class Chunk : IDisposable
 {
@@ -158,14 +168,8 @@ public class Chunk : IDisposable
     
     public void Dispose()
     {
-        ArrayPool<byte>.Shared.Return(Line);
+        ArrayPool<byte>.Shared.Return(Line, false);
     }
-}
-
-public class ChunkLineWriter
-{
-    public static byte[] writeBuffer;
-    public static byte[] writeToFileBuffer;
 }
 
 public class StringLineReader

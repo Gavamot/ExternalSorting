@@ -1,10 +1,10 @@
-﻿using System.Buffers;
-using System.Diagnostics;
-using System.Text;
-using Domain;
-using ExternalSorting;
+﻿using Domain;
 
 
-var chunkProducer = new ChunkProducer(); 
+//var maxProduce = Environment.ProcessorCount * 2;
+//var chunkSizeBytes = 1024 * 1024 * 100;
 
-Console.ReadKey();
+var chunkProducer = new ChunkProducer("./input.txt", 256, 3);
+var res = await chunkProducer.CreateChunks();  
+
+Console.WriteLine("IT IS DONE");
