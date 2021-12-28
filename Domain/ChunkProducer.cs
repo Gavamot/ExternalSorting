@@ -31,12 +31,13 @@ public class ChunkProducer
     {
         try
         {
-            if(Directory.Exists(ChunksFolder)) Directory.Delete(ChunksFolder);
+            if(Directory.Exists(ChunksFolder)) Directory.Delete(ChunksFolder, true);
             Directory.CreateDirectory(ChunksFolder);
         }
         catch (Exception e)
         {
             await Console.Error.WriteLineAsync($"Problems connected with work folder creation {ChunksFolder} There may be problems with the operation of the program. Try to reboot your pc and run this program with administrator privileges.");
+            return new Chunk[0];
         }
 
         List<Chunk> res = new();
@@ -98,14 +99,15 @@ public class ChunkProducer
             buf1Red = buf2Red;
         }
         
-        chunk.End =  buf1Red + startNextChunk - 1;
+        chunk.End = buf1Red + startNextChunk - 1;
+
+        if (chunk.Length > 2) chunkWriter.SortChunkAndWriteToDisk(chunk);
+        else res.Remove(chunk);
         
-        if(chunk.Length > 2) chunkWriter.SortChunkAndWriteToDisk(chunk);
         await chunkWriter.WaitWhenAllTaskCompleted();
         return res;
     }
     
-
     private class ChunkWriter
     {
         public ChunkWriter(int maxProduce)
@@ -119,18 +121,18 @@ public class ChunkProducer
         private List<Task> Tasks = new ();
         public void SortChunkAndWriteToDisk(Chunk chunk)
         {
+            Interlocked.Increment(ref produce);
             var t = Task.Factory.StartNew(async () =>
             {
                 var sw = Stopwatch.StartNew();
-            
-                Interlocked.Increment(ref produce);
                 chunk.SortLine();
                 await chunk.WriteToDiskAsync();
                 chunk.Dispose();
-                Interlocked.Decrement(ref produce);
-            
                 sw.Stop();
                 Console.WriteLine($"{chunk.Path} had been created - {sw.ElapsedMilliseconds} ms");
+                await Task.Delay(1000);
+                
+                Interlocked.Decrement(ref produce);
             }, TaskCreationOptions.LongRunning);
             Tasks.Add(t);
         }

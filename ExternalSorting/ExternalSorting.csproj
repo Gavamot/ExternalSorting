@@ -17,4 +17,8 @@
       </None>
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="input2.txt" />
+    </ItemGroup>
+
 </Project>
