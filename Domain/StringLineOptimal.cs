@@ -24,7 +24,7 @@ public record StringLineOptimal
     // Dont use IComparable for avoid boxing/unboxing operations
     public int CompareTo(StringLineOptimal obj)
     {
-        // This is bad Bad code but shod be faster then always public int Length => checked((int)Unsafe.As<RawArrayData>(this).Length);
+        // This is bad Bad code but shod be faster then always public int GetLength => checked((int)Unsafe.As<RawArrayData>(this).GetLength);
         long ln1 = Length;
         long ln2 = obj.Length;
         // This is Bad to batter save it in the class variable but I want to save memory
@@ -73,10 +73,10 @@ public record StringLineOptimal
     private long GetSeparator()
     {
         // Number will be in any case because of that start with index 1 
-        const byte dotAsciiNumber = 46; // ASCII "." number is 46
+        
         for (long i = 1; i < Length; i++)
         {
-            if (line[start + i] == dotAsciiNumber) return i;
+            if (line[start + i] == AsciiCodes.Dot) return i;
         }
         throw new Exception("Can not find string parts separator. Check the source file for correct");
     }

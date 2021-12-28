@@ -3,6 +3,8 @@
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.ChunkProducerTest.Same20Strings_OneStringInChunk_Created20Chunks&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.ChunkProducerTest.DifferentStrings_DifferentChunks_ChunksCreated&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.StringLineTest&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.ChunkProducerTest&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=c76df18d_002Df6ca_002D4bc8_002Dac9f_002D7b162a9d193e/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Compare" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;

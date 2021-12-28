@@ -13,12 +13,12 @@ namespace ExternalSorting.Test;
 
 public class ChunkProducerTest
 {
-    private string MergeToFile(IEnumerable<Chunk> chunks)
+    private string MergeToFile(string[] paths)
     {
         StringBuilder res = new(); 
-        foreach (var chunk in chunks)
+        foreach (var path in paths)
         {
-            res.Append(File.ReadAllText(chunk.Path));
+            res.Append(File.ReadAllText(path));
         }
         return res.ToString();
     }

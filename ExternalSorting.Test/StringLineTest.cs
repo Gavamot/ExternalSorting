@@ -6,7 +6,7 @@ namespace ExternalSorting.Test;
 
 public class StringLineTest
 {
-    private static StringLine CreateStr(string str) => new StringLine(Encoding.ASCII.GetBytes(str));
+    private static StringLine CreateStr(string str) => new StringLine(Encoding.ASCII.GetBytes(str), 0, str.Length - 1);
 
     private void TestCompare(string line1, string line2, int expected)
     {

@@ -2,47 +2,30 @@
 
 namespace Domain;
 
-public static class StringLineFileWriterExt
-{
-     public static void WriteToFile(this StringLine[] lines, string filePath, int bufferSize)
-     {
-          using var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None);
-          var ln = lines.Length;
-          for (int i = 0; i < ln; i++)
-          { 
-               stream.Write(lines[i].Line);
-          }
-          stream.Flush();
-     }
-     public static void WriteToFile(this IEnumerable<StringLine> lines, string filePath, int bufferSize)
-     {
-          using var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None);
-          foreach (var line in lines)
-          { 
-               stream.Write(line.Line);
-          }
-          stream.Flush();
-     }
-}
-
 public record StringLine
 {
-     public StringLine(byte[] line)
+     public StringLine(byte[] line, int start, int end)
      {
-          Line = line;
+          this.line = line;
+          this.start = start;
+          this.end = end;
      }
      
-     public readonly byte[] Line;
-
+     public readonly byte[] line;
+     public readonly int start;
+     public readonly int end;
+     
+     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+     public int GetLength() => end - start + 1;
+     
      public bool IsMore(StringLine obj) => CompareTo(obj) > 0;
      
      // I a'm sorry for that code works only for ASCII and String must have only first letter in UpperCase
      // Dont use IComparable for avoid boxing/unboxing operations
      public int CompareTo(StringLine obj)
      {
-          // This is bad Bad code but shod be faster then always public int Length => checked((int)Unsafe.As<RawArrayData>(this).Length);
-          int ln1 = Line.Length;
-          int ln2 = obj.Line.Length;
+          int ln1 = GetLength();
+          int ln2 = obj.GetLength();
           // This is Bad to batter save it in the class variable but I want to save memory
           int ds1 = GetSeparator();
           int ds2 = obj.GetSeparator();
@@ -54,10 +37,13 @@ public record StringLine
           int strLn1 = ln1 - ds1;
           int strLn2 = ln2 - ds2;
           int minSize = Math.Min(strLn1, strLn2);
+          
           for (int i = 1; i < minSize; i++)
           {
-               if (Line[ds1 + i] > obj.Line[ds2 + i]) return -1;
-               if (Line[ds1 + i] < obj.Line[ds2 + i]) return 1;
+               int index1 = start + ds1 + i;
+               int index2 = obj.start + ds2 + i;
+               if (line[index1] > obj.line[index2]) return -1;
+               if (line[index1] < obj.line[index2]) return 1;
           }
 
           if (strLn1  > minSize) return -1;
@@ -75,8 +61,10 @@ public record StringLine
           if (lnNum1 > minSize) return -1;
           for (int i = 0; i < minSize; i++)
           {
-               if (Line[i] > obj.Line[i]) return -1;
-               if (Line[i] < obj.Line[i]) return 1;
+               int index1 = start + i;
+               int index2 = obj.start + i;
+               if (line[index1] > obj.line[index2]) return -1;
+               if (line[index1] < obj.line[index2]) return 1;
           }
           return 0;
      }
@@ -84,11 +72,9 @@ public record StringLine
      [MethodImpl(MethodImplOptions.AggressiveInlining)]
      private int GetSeparator()
      {
-          // Number will be in any case because of that start with index 1 
-          const byte dotAsciiNumber = 46; // ASCII "." number is 46
-          for (int i = 1; i < Line.Length; i++)
+          for (int i = start + 1; i < Global.MaxDotPosition; i++)
           {
-               if (Line[i] == dotAsciiNumber) return i;
+               if (line[i] == AsciiCodes.Dot) return i;
           }
           throw new Exception("Can not find string parts separator. Check the source file for correct");
      }

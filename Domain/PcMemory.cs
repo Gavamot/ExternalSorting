@@ -3,20 +3,20 @@ using System.Runtime.InteropServices;
 
 namespace Domain;
 
-public class MemoryMetrics
-{
-    public double Total;
-    public double Used;
-    public double Free;
-}
-
 public class PcMemory
 {
     public static double FreeMemoryMb = new PcMemory().GetMetrics().Free;
 
     public static long FreeMemoryBytes => (long)FreeMemoryMb * 1024L * 1024L;
     
-    public MemoryMetrics GetMetrics()
+    class MemoryMetrics
+    {
+        public double Total;
+        public double Used;
+        public double Free;
+    }
+    
+    private MemoryMetrics GetMetrics()
     {
         if(IsUnix())
         {

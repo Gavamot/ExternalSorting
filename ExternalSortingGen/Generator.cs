@@ -1,20 +1,10 @@
 ﻿using System.Text;
+using Domain;
 
 namespace ExternalSortingGen;
 
 public static class Generator
 {
-    static readonly string[] strArray = {
-        "Something something something",
-        "Cherry is the best",
-        "Banana is yellow",
-        "Apple",
-        "Blueberry is better than the best",
-        "Strawberry is very delicious",
-        "Pineapple is sweet and tasty",
-        "What you see is what you get"
-    };
-    
     public static void WriteToFile(string path, ulong count, int butchSize)
     {
         File.Delete(path);
@@ -27,7 +17,8 @@ public static class Generator
             var str = new StringBuilder();
             for (int i = 0; i < need; i++)
             {
-                str.AppendLine($"{rnd.Next(0, 10000)}.{strArray[rnd.Next(0, strArray.Length)]}");
+                var randomWord = Global.StrArray[rnd.Next(0, Global.StrArray.Length)];
+                str.Append($"{rnd.Next(0, 10000)}.{randomWord}\n\r");
             }
             File.AppendAllText(path, str.ToString(), Encoding.ASCII);
             done += (ulong) need;
