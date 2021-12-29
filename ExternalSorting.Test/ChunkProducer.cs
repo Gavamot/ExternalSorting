@@ -22,8 +22,9 @@ public class ChunkProducerTest
         }
         return res.ToString();
     }
+    
 
-    [Test]
+    /*[Test]
     public async Task Same20Strings_OneStringInChunk_Created20Chunks()
     {
         var file = "./data/input2.txt";
@@ -44,5 +45,5 @@ public class ChunkProducerTest
         var actual = MergeToFile(chunks);
         var expected = await File.ReadAllTextAsync(file);
         Assert.AreEqual(expected, actual);
-    }
+    }*/
 }

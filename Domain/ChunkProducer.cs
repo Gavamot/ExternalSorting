@@ -1,17 +1,141 @@
 ﻿using System.Buffers;
 using System.Diagnostics;
-using System;
-using System.Text;
+
 using ExternalSorting;
 
 namespace Domain;
 
-public class Config
+public record Config
 {
     public int ParallelChunks { get; set; }
     public int ChunkSize { get; set; }
     public string WorkFolder { get; set; }
 }
+
+public class ChunkMergerConfig
+{
+    public int MinForSizeBytes { get; set; } = 1048576; // 1mb;
+    public int BufferFoWriteBytes { get; set; } = 104_857_600; // 100mb;
+}
+
+public class ChunkMerger
+{
+    private readonly ChunkMergerConfig config;
+
+    public ChunkMerger(ChunkMergerConfig config)
+    {
+        this.config = config;
+    }
+    private int GetChunkBuffer(ChunkForWrite[] chunks)
+    {
+        long free = PcMemory.FreeMemoryBytes;
+        long freeMemory = (free - config.BufferFoWriteBytes) / 2;
+        int maxChunkBuffer = chunks.Max(x => x.Length);
+        long chunkBuffer =freeMemory / chunks.Length;
+        if (chunkBuffer > maxChunkBuffer) chunkBuffer = maxChunkBuffer;
+        var res = BinaryMath.ToNearestPow2((int)chunkBuffer);
+        int chunkTotalCostBytes = res * 2;
+        Console.WriteLine($"Free {free.BytesToMbs()} mb. Chunks {chunks.Length}, each chunk need {chunkTotalCostBytes} bytes include bufferSize {res}");
+        if (chunkTotalCostBytes < config.MinForSizeBytes) throw new AppException($"You have only {chunkTotalCostBytes} bytes for each chunk but min value is {config.MinForSizeBytes} bytes");
+        return res;
+    }
+
+    private void PrepareFile(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+            {
+                Console.WriteLine($"output file ({path}) is already exist. It will be removed");
+                File.Delete(path);
+            }
+        }
+        catch (IOException e)
+        {
+            throw new AppException($"output file {path} already exist. Cam nor remove it", e);
+        }
+    }
+    
+    public void MergeChunks(string path, ChunkForWrite[] chunks)
+    {
+        GC.Collect(2, GCCollectionMode.Forced, true, true);
+        byte[] buf = ArrayPool<byte>.Shared.Rent(config.BufferFoWriteBytes);
+        
+        int chunkBufSizeBytes = GetChunkBuffer(chunks);
+        using var chunkReaders = new ChunkReadersCollection(chunks, chunkBufSizeBytes);
+        int maxWriteBytes = buf.Length - Global.MaxStringLength;
+        int red = 0;
+        using FileStream sw = File.OpenWrite(path);
+        while ((red = chunkReaders.ReadStringLines(buf, maxWriteBytes)) > 0)
+        {
+            sw.Write(buf, 0, red);
+            sw.Flush();
+        }
+        ArrayPool<byte>.Shared.Return(buf);
+    }
+
+    class ChunkReadersCollection : IDisposable
+    {
+        private readonly ChunkForWrite[] chunkForWrites;
+        private readonly ChunkReader[] chunkReaders;
+        public ChunkReadersCollection(ChunkForWrite[] chunkForWrites, int chunkBufferSize)
+        {
+            this.chunkForWrites = chunkForWrites;
+            chunkReaders = chunkForWrites.Select(x => new ChunkReader(x, chunkBufferSize)).ToArray();
+        }
+
+        public int ReadStringLines(byte[] buf, int maxWriteBytes)
+        {
+            return 1;
+        }
+       
+        
+        public void Dispose()
+        {
+            foreach (var chunkReader in chunkReaders)
+            {
+                chunkReader.Dispose();
+            }
+
+            try
+            {
+                var dir = new FileInfo(chunkForWrites.First().Path).Directory ?? throw new IOException("Can not find chunks directory");
+                Directory.Delete(dir.FullName, true);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Can not find chunks directory cause {e.Message}");
+            }
+        }
+    }
+    
+    class ChunkReader : IDisposable
+    {
+        readonly ChunkForWrite chunk;
+        private readonly int bufSizeBytes;
+        byte[] buf; 
+        public ChunkReader(ChunkForWrite chunk, int bufSizeBytes)
+        {
+            this.chunk = chunk;
+            this.bufSizeBytes = bufSizeBytes;
+            buf = ArrayPool<byte>.Shared.Rent(bufSizeBytes);
+        }
+
+        public IEnumerable<StringLine> ReadLines()
+        {
+            FileStream fr = new(chunk.Path, FileMode.Open, FileAccess.Read);
+            int cur = 0;
+            yield break;
+        }
+
+        public void Dispose()
+        {
+            ArrayPool<byte>.Shared.Return(buf);
+        }
+    }
+}
+
+public record ChunkForWrite(string Path, int Length);
 
 public class ChunkProducer
 {
@@ -45,16 +169,14 @@ public class ChunkProducer
         }
         catch (Exception e)
         {
-            string error = $"Problems connected with work folder creation {ChunksFolder} There may be problems with the operation of the program. Try to reboot your pc and run this program with administrator privileges";
-            await Console.Error.WriteLineAsync(error);
-            throw new Exception(error);
+            throw new AppException($"Problems connected with work folder creation {ChunksFolder} There may be problems with the operation of the program. Try to reboot your pc and run this program with administrator privileges", e);
         }
     }
     
-    public async Task<string[]> CreateChunks()
+    public async Task<ChunkForWrite[]> CreateChunks()
     {
         await CreateChunkDirectory();
-        List<Chunk> res = new();
+        List<Chunk> chunks = new();
         await using FileStream fr = new(sourcePath, FileMode.Open, FileAccess.Read);
         
         int bufSize = chunkSize - Global.MaxStringLength;
@@ -67,7 +189,7 @@ public class ChunkProducer
             Start = 0,
             Path = ChunkName
         };
-        res.Add(chunk);
+        chunks.Add(chunk);
         
         int startNextChunk = 0;
         
@@ -102,7 +224,7 @@ public class ChunkProducer
                 Line = buf2,
                 Path = ChunkName
             };
-            res.Add(chunk);
+            chunks.Add(chunk);
             
             buf1 = buf2;
             buf1Red = buf2Red;
@@ -111,10 +233,11 @@ public class ChunkProducer
         chunk.End = buf1Red + startNextChunk - 1;
 
         if (chunk.Length >= Global.MinStringLength) chunkWriter.SortChunkAndWriteToDisk(chunk);
-        else res.Remove(chunk);
+        else chunks.Remove(chunk);
         
         await chunkWriter.WaitWhenAllTaskCompleted();
-        return res.Select(x=>x.Path).ToArray();
+        var res = chunks.Select(x=> new ChunkForWrite(x.Path, x.Length)).ToArray();
+        return res;
     }
     
     private class ChunkWriter
