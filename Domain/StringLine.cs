@@ -23,8 +23,8 @@ public record StringLine
      public bool IsMore(StringLine obj) => CompareTo(obj) > 0;
 
 
-     private const int Less = 1;
-     private  int More = -1;
+     public const int Less = 1;
+     public const int More = -1;
      
      // I a'm sorry for that code works only for ASCII and String must have only first letter in UpperCase
      // Dont use IComparable for avoid boxing/unboxing operations

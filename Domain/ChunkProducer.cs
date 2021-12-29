@@ -56,7 +56,7 @@ public class ChunkMerger
         }
     }
     
-    public void MergeChunks(string path, ChunkForWrite[] chunks)
+    public async Task MergeChunks(string path, ChunkForWrite[] chunks)
     {
         GC.Collect(2, GCCollectionMode.Forced, true, true);
         byte[] buf = ArrayPool<byte>.Shared.Rent(config.BufferFoWriteBytes);
@@ -64,15 +64,11 @@ public class ChunkMerger
         int chunkBufSizeBytes = GetChunkBuffer(chunks);
         using var chunkReaders = new ChunkReadersCollection(chunks, chunkBufSizeBytes);
         int maxWriteBytes = buf.Length - Global.MaxStringLength;
-        int red = 0;
-        using FileStream sw = File.OpenWrite(path);
-        while ((red = chunkReaders.ReadStringLines(buf, maxWriteBytes)) > 0)
-        {
-            sw.Write(buf, 0, red);
-            sw.Flush();
-        }
+        await chunkReaders.ReadStringLinesAsync(path, buf, maxWriteBytes);
         ArrayPool<byte>.Shared.Return(buf);
     }
+    
+    
 
     class ChunkReadersCollection : IDisposable
     {
@@ -83,12 +79,67 @@ public class ChunkMerger
             this.chunkForWrites = chunkForWrites;
             chunkReaders = chunkForWrites.Select(x => new ChunkReader(x, chunkBufferSize)).ToArray();
         }
-
-        public int ReadStringLines(byte[] buf, int maxWriteBytes)
+        
+        public async Task ReadStringLinesAsync(string path, byte[] buf, int maxWriteBytes)
         {
-            return 1;
+            var readTasks = chunkReaders.Select(x=> x.ReadLines().GetAsyncEnumerator()).ToArray();
+            await Task.WhenAll(readTasks.Select(async x =>  await x.MoveNextAsync()).ToArray());
+            var readCells = readTasks.Select(x => x.Current).ToArray();
+            await Task.WhenAll(readCells);
+            var lines = readCells.Select(x => x.Result).ToArray();
+            
+            int cur = 0;
+            await using FileStream sw = File.OpenWrite(path);
+            while (true)
+            {
+                (int index, var str) = GetSortedString(lines);
+                if (str == null)
+                {
+                    sw.Write(buf, 0, cur);
+                    sw.Flush(); 
+                    break;
+                }
+
+                var ln = str.GetLength();
+                Array.Copy(str.line, str.start, buf, cur, ln);
+                cur += ln;
+                if (cur >= maxWriteBytes)
+                {
+                    sw.Write(buf, 0, cur);
+                    sw.Flush();
+                    cur = 0;
+                }
+
+                if (await readTasks[index].MoveNextAsync())
+                {
+                    lines[index] = await readTasks[index].Current;
+                }
+            }
+         
         }
-       
+
+        private (int, StringLine? res) GetSortedString(StringLine?[] lines)
+        {
+            int maxIndex = 0;
+            StringLine? res = null;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var line = lines[i];
+                if (res == null)
+                {
+                    maxIndex = i;
+                    res = line;
+                }
+                else if(lines[i] != null)
+                {
+                    if (res.CompareTo(line!) > StringLine.More) continue;
+                    maxIndex = i;
+                    res = line;
+                }
+            }
+            if (res == null) return (-1, null);
+            return (maxIndex, res);
+        }
         
         public void Dispose()
         {
@@ -104,7 +155,7 @@ public class ChunkMerger
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Can not find chunks directory cause {e.Message}");
+                Console.WriteLine($"! Can not find chunks directory cause {e.Message}");
             }
         }
     }
@@ -112,20 +163,28 @@ public class ChunkMerger
     class ChunkReader : IDisposable
     {
         readonly ChunkForWrite chunk;
-        private readonly int bufSizeBytes;
-        byte[] buf; 
+        readonly byte[] buf;
         public ChunkReader(ChunkForWrite chunk, int bufSizeBytes)
         {
             this.chunk = chunk;
-            this.bufSizeBytes = bufSizeBytes;
             buf = ArrayPool<byte>.Shared.Rent(bufSizeBytes);
         }
 
-        public IEnumerable<StringLine> ReadLines()
+        public async IAsyncEnumerable<Task<StringLine?>> ReadLines()
         {
-            FileStream fr = new(chunk.Path, FileMode.Open, FileAccess.Read);
-            int cur = 0;
-            yield break;
+            await using FileStream fr = new(chunk.Path, FileMode.Open, FileAccess.Read);
+            int redBytes = 0;
+            while ((redBytes = await fr.ReadAsync(buf)) > 0)
+            {
+                int start = 0;
+                for (int i = 0; i < redBytes; i++)
+                {
+                    if (buf[i] != AsciiCodes.LineEnd) continue;
+                    yield return Task.FromResult(new StringLine(buf, start, i))!;
+                    start = i + 1;
+                }
+            }
+            yield return null;
         }
 
         public void Dispose()
