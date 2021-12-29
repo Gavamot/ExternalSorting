@@ -7,7 +7,7 @@ namespace ExternalSorting.Test;
 [MemoryDiagnoser]
 public class StringLineBenchmark
 {
-    private const int Size = 60000;
+    /*private const int Size = 60000;
     private readonly StringLine[] data = new StringLine[Size];
 
     private static Random random = new Random(67434334);
@@ -46,5 +46,5 @@ public class StringLineBenchmark
         {
             data[i - 1].CompareTo(data[i]);
         }
-    }
+    }*/
 }

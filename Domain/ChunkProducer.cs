@@ -1,6 +1,8 @@
 ﻿using System.Buffers;
 using System.Diagnostics;
 using System;
+using System.Text;
+using ExternalSorting;
 
 namespace Domain;
 
@@ -129,10 +131,10 @@ public class ChunkProducer
         public void SortChunkAndWriteToDisk(Chunk chunk)
         {
             Interlocked.Increment(ref produce);
-            Task t = Task.Factory.StartNew(() =>
+            Task t = Task.Factory.StartNew( () =>
             {
                 var sw = Stopwatch.StartNew();
-                chunk.SortAndWriteToDiskAsync().Wait(); // Blocking operation but for this task it is OK. Because sync works faster in this case
+                chunk.SortAndWriteToDisk(); // Blocking operation but for this task it is OK. Because sync works faster in this case
                 chunk.Dispose();
                 sw.Stop();
                 Console.WriteLine($"{chunk.Path} had been created - {sw.ElapsedMilliseconds} ms");
@@ -160,42 +162,44 @@ public class Chunk : IDisposable
     public int Length => End - Start + 1;
     public string Path { get; set; }
     
-    List<StringLine> GetSortedLines()
+    StringLine[] GetSortedLines()
     {
-        var size = Length / Global.MaxStringLength + 1;
-        List<StringLine> res = new(size); // I can bool it if need faster
+        var size = Length / Global.MidStringLength;
+        List<StringLine> lines = new(size); // ? I can pool it if need faster
         int lineStart = Start;
+        
         for (int i = Start; i <= End; i++)
         {
             if (Line[i] != AsciiCodes.LineEnd) continue;
-            res.Add(new(Line, lineStart, i));
+            lines.Add(new(Line, lineStart, i));
             lineStart = i + 1;
         }
+
+        var res = lines.ToArray();
+        Sorting.QuickSort.Sort(res);
         return res;
     }
 
-    byte[] SortedLinesToByteArray(List<StringLine> lines)
+    byte[] SortedLinesToByteArray(StringLine[] lines)
     {
         var writeBuffer = ArrayPool<byte>.Shared.Rent(Length);
-        Array.Copy(Line, Start, writeBuffer, 0, Length);
-        return writeBuffer;
         int insertIndex = 0;
-        foreach (var line in lines)
+        for (int i = 0; i < lines.Length; i++)
         {
-            int ln = line.GetLength();
-            Array.Copy(Line, line.start, writeBuffer, insertIndex, ln);
+            int ln = lines[i].GetLength();
+            Array.Copy(Line, lines[i].start, writeBuffer, insertIndex, ln);
             insertIndex += ln;
         }
         return writeBuffer;
     }
     
-    public async Task SortAndWriteToDiskAsync()
+    public void SortAndWriteToDisk()
     {
         var lines = GetSortedLines();
-        await using var stream = File.OpenWrite(Path);
         var writeBuffer = SortedLinesToByteArray(lines);
-        await stream.WriteAsync(writeBuffer);
-        await stream.FlushAsync();
+        using var stream = File.OpenWrite(Path);
+        stream.Write(writeBuffer, 0, Length);
+        stream.Flush();
         ArrayPool<byte>.Shared.Return(writeBuffer, false);
     }
     

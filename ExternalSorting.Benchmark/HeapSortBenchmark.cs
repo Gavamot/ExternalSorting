@@ -36,23 +36,23 @@ public class HeapSortBenchmark
         return strArray[random.Next(0, strArray.Length)];
     }
 
-    private static StringLine GetRandomStringLine()
+    /*private static StringLine GetRandomStringLine()
     {
         var random = new Random(67434334);
         var num = random.Next();
         var str = GenerateDictString();
         return new StringLine(Encoding.ASCII.GetBytes($"{num}.{str}"));
-    }
+    }*/
 
-    private void GenerateLines()
+    /*private void GenerateLines()
     {
         for (int i = 0; i < Size; i++)
         {
             data[i] = GetRandomStringLine();
         }
-    }
+    }*/
 
-    public HeapSortBenchmark()
+    /*public HeapSortBenchmark()
     {
         GenerateLines();
     }
@@ -80,5 +80,5 @@ public class HeapSortBenchmark
     public void TimSort()
     {
         Sorting.TimSort(data);
-    }
+    }*/
 }

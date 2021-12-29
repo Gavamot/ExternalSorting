@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using System.Runtime.CompilerServices;
+using Domain;
 
 namespace ExternalSorting;
 
@@ -16,19 +17,25 @@ public static  class Sorting
             int lowIndex = (low - 1);
 
             //2. Reorder the collection.
-            for (int j = low; j < high; j++)
+            for (int i = low; i < high; i++)
             {
-                if (array[j] <= pivot)
+                if (array[i] <= pivot)
                 {
                     lowIndex++;
-
-                    (array[lowIndex], array[j]) = (array[j], array[lowIndex]);
+                    
+                    var temp = array[lowIndex];
+                    array[lowIndex] = array[i];
+                    array[i] = temp;
                 }
             }
 
-            (array[lowIndex + 1], array[high]) = (array[high], array[lowIndex + 1]);
-
-            return lowIndex + 1;
+            lowIndex++;
+            
+            var temp1 = array[lowIndex];
+            array[lowIndex] = array[high];
+            array[high] = temp1;
+            
+            return lowIndex;
         }
 
         static void InnerSort(StringLine[] array, int low, int high)

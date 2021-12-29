@@ -23,5 +23,6 @@ public static class Global
     static readonly string LargestString = StrArray.First(x => x.Length == StrArray.Max(y=> y.Length));
     public static readonly int MinStringLength = "1.A\n\r".Length;
     public static readonly int MaxStringLength = $"{int.MaxValue}.{LargestString}\n\r".Length;
+    public static readonly int MidStringLength = (MaxStringLength + MinStringLength) / 2;
     public static readonly int MaxDotPosition = $"{int.MaxValue}".Length + 1;
 }

@@ -5,7 +5,7 @@
 var str = Environment.NewLine;
 Console.WriteLine((byte)str[0]);
 Console.WriteLine((byte)str[1]);
-var chunkProducer = new ChunkProducer("./input.txt", 256, 16);
+var chunkProducer = new ChunkProducer("./input.txt", 256, 1);
 var res = await chunkProducer.CreateChunks();  
 
 
