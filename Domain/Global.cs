@@ -20,6 +20,9 @@ public static class Global
         "Pineapple is sweet and tasty",
         "What you see is what you get"
     };
+
+    public const int MinNumber = 1; 
+    public const int MaxNumber = 10_000; 
     static readonly string LargestString = StrArray.MaxBy(y=> y.Length) ?? throw new Exception("StrArray is empty");
     public static readonly int MinStringLength = "1.A\n\r".Length;
     public static readonly int MaxStringLength = $"{int.MaxValue}.{LargestString}\n\r".Length;
