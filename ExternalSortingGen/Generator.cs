@@ -9,12 +9,14 @@ public static class Generator
     {
         if (proposalCount > Global.StrArray.Length) throw new AppException($"Have not enough proposals max is {Global.StrArray.Length}");
         var outStrings = new List<string>(proposalCount * Global.MaxNumber);
+        var words = Global.StrArray.OrderBy(x=>x).ToArray();
+        
         for (int i = 0; i < proposalCount; i++)
         {
             var str = new StringBuilder();
             for (int j = 1; j < Global.MaxNumber; j++)
             {
-                var randomWord = Global.StrArray[i];
+                var randomWord = words[i];
                 var _ = $"{j}.{randomWord}\r\n";
                 str.Append(_);
                 outStrings.Add(_);

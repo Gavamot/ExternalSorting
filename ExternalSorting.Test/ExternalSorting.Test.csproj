@@ -26,13 +26,30 @@
     </ItemGroup>
 
     <ItemGroup>
+      <None Remove="input.txt" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="data\random_input.txt" />
+      <None Remove="data\test.txt" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="data\test.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <None Remove="data\input.txt" />
       <Content Include="data\input.txt">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
+      <None Remove="data\input2.txt" />
       <Content Include="data\input2.txt">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
-      <None Remove="input.txt" />
+      <None Remove="data\test2.txt" />
+      <Content Include="data\test2.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>

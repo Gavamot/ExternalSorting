@@ -9,8 +9,7 @@ const string output = "./output.txt";
 try
 {
     var t = Stopwatch.StartNew();
-    GC.Collect(2, GCCollectionMode.Forced, true, true);
-    var chunkProducer = new ChunkProducer("./input.txt", 256, 1);
+    var chunkProducer = new ChunkProducer(new ChunkProducerConfig());
     var chunks = await chunkProducer.CreateChunks();
     
     var chunkMergerConfig = new ChunkMergerConfig();

@@ -5,230 +5,62 @@ using ExternalSorting;
 
 namespace Domain;
 
-public record Config
-{
-    public int ParallelChunks { get; set; }
-    public int ChunkSize { get; set; }
-    public string WorkFolder { get; set; }
-}
-
-public class ChunkMergerConfig
-{
-    public int MinForSizeBytes { get; set; } = 1048576; // 1mb;
-    public int BufferFoWriteBytes { get; set; } = 104_857_600; // 100mb;
-}
-
-public class ChunkMerger
-{
-    private readonly ChunkMergerConfig config;
-
-    public ChunkMerger(ChunkMergerConfig config)
-    {
-        this.config = config;
-    }
-    private int GetChunkBuffer(ChunkForWrite[] chunks)
-    {
-        long free = PcMemory.FreeMemoryBytes;
-        long freeMemory = (free - config.BufferFoWriteBytes) / 2;
-        int maxChunkBuffer = chunks.Max(x => x.Length);
-        long chunkBuffer =freeMemory / chunks.Length;
-        if (chunkBuffer > maxChunkBuffer) chunkBuffer = maxChunkBuffer;
-        var res = BinaryMath.ToNearestPow2((int)chunkBuffer);
-        int chunkTotalCostBytes = res * 2;
-        Console.WriteLine($"Free {free.BytesToMbs()} mb. Chunks {chunks.Length}, each chunk need {chunkTotalCostBytes} bytes include bufferSize {res}");
-        if (chunkTotalCostBytes < config.MinForSizeBytes) throw new AppException($"You have only {chunkTotalCostBytes} bytes for each chunk but min value is {config.MinForSizeBytes} bytes");
-        return res;
-    }
-
-    private void PrepareFile(string path)
-    {
-        try
-        {
-            if (File.Exists(path))
-            {
-                Console.WriteLine($"output file ({path}) is already exist. It will be removed");
-                File.Delete(path);
-            }
-        }
-        catch (IOException e)
-        {
-            throw new AppException($"output file {path} already exist. Cam nor remove it", e);
-        }
-    }
-    
-    public async Task MergeChunks(string path, ChunkForWrite[] chunks)
-    {
-        GC.Collect(2, GCCollectionMode.Forced, true, true);
-        byte[] buf = ArrayPool<byte>.Shared.Rent(config.BufferFoWriteBytes);
-        
-        int chunkBufSizeBytes = GetChunkBuffer(chunks);
-        using var chunkReaders = new ChunkReadersCollection(chunks, chunkBufSizeBytes);
-        int maxWriteBytes = buf.Length - Global.MaxStringLength;
-        await chunkReaders.ReadStringLinesAsync(path, buf, maxWriteBytes);
-        ArrayPool<byte>.Shared.Return(buf);
-    }
-    
-    
-
-    class ChunkReadersCollection : IDisposable
-    {
-        private readonly ChunkForWrite[] chunkForWrites;
-        private readonly ChunkReader[] chunkReaders;
-        public ChunkReadersCollection(ChunkForWrite[] chunkForWrites, int chunkBufferSize)
-        {
-            this.chunkForWrites = chunkForWrites;
-            chunkReaders = chunkForWrites.Select(x => new ChunkReader(x, chunkBufferSize)).ToArray();
-        }
-        
-        public async Task ReadStringLinesAsync(string path, byte[] buf, int maxWriteBytes)
-        {
-            var readTasks = chunkReaders.Select(x=> x.ReadLines().GetAsyncEnumerator()).ToArray();
-            await Task.WhenAll(readTasks.Select(async x =>  await x.MoveNextAsync()).ToArray());
-            var readCells = readTasks.Select(x => x.Current).ToArray();
-            await Task.WhenAll(readCells);
-            var lines = readCells.Select(x => x.Result).ToArray();
-            
-            int cur = 0;
-            await using FileStream sw = File.OpenWrite(path);
-            while (true)
-            {
-                (int index, var str) = GetSortedString(lines);
-                if (str == null)
-                {
-                    sw.Write(buf, 0, cur);
-                    sw.Flush(); 
-                    break;
-                }
-
-                var ln = str.GetLength();
-                Array.Copy(str.line, str.start, buf, cur, ln);
-                cur += ln;
-                if (cur >= maxWriteBytes)
-                {
-                    sw.Write(buf, 0, cur);
-                    sw.Flush();
-                    cur = 0;
-                }
-
-                if (await readTasks[index].MoveNextAsync())
-                {
-                    lines[index] = await readTasks[index].Current;
-                }
-            }
-         
-        }
-
-        private (int, StringLine? res) GetSortedString(StringLine?[] lines)
-        {
-            int maxIndex = 0;
-            StringLine? res = null;
-            for (int i = 0; i < lines.Length; i++)
-            {
-                var line = lines[i];
-                if (res == null)
-                {
-                    maxIndex = i;
-                    res = line;
-                }
-                else if(lines[i] != null)
-                {
-                    if (res.CompareTo(line!) > StringLine.More) continue;
-                    maxIndex = i;
-                    res = line;
-                }
-            }
-            if (res == null) return (-1, null);
-            return (maxIndex, res);
-        }
-        
-        public void Dispose()
-        {
-            foreach (var chunkReader in chunkReaders)
-            {
-                chunkReader.Dispose();
-            }
-
-            try
-            {
-                var dir = new FileInfo(chunkForWrites.First().Path).Directory ?? throw new IOException("Can not find chunks directory");
-                Directory.Delete(dir.FullName, true);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"! Can not find chunks directory cause {e.Message}");
-            }
-        }
-    }
-    
-    class ChunkReader : IDisposable
-    {
-        readonly ChunkForWrite chunk;
-        readonly byte[] buf;
-        public ChunkReader(ChunkForWrite chunk, int bufSizeBytes)
-        {
-            this.chunk = chunk;
-            buf = ArrayPool<byte>.Shared.Rent(bufSizeBytes);
-        }
-
-        public async IAsyncEnumerable<Task<StringLine?>> ReadLines()
-        {
-            await using FileStream fr = new(chunk.Path, FileMode.Open, FileAccess.Read);
-            int redBytes = 0;
-            while ((redBytes = await fr.ReadAsync(buf)) > 0)
-            {
-                int start = 0;
-                for (int i = 0; i < redBytes; i++)
-                {
-                    if (buf[i] != AsciiCodes.LineEnd) continue;
-                    yield return Task.FromResult(new StringLine(buf, start, i))!;
-                    start = i + 1;
-                }
-            }
-            yield return null;
-        }
-
-        public void Dispose()
-        {
-            ArrayPool<byte>.Shared.Return(buf);
-        }
-    }
-}
 
 public record ChunkForWrite(string Path, int Length);
 
+
+public class ChunkProducerConfig
+{
+    public string Input { get; set; } = "./input.txt";
+    public string ChunkFolder { get; set; } = "./chunks";
+    public int ChunkSize { get; set; } = 1024 * 1024 * 1024;
+    public int MaxProduce { get; set; } = Environment.ProcessorCount * 2;
+}
+
 public class ChunkProducer
 {
-    public ChunkProducer(string sourcePath, int chunkSize, int maxProduce)
+    public ChunkProducer(string input)
     {
-        this.sourcePath = sourcePath;
-        this.chunkSize = chunkSize;
-        this.chunkWriter = new ChunkWriter(maxProduce);
+        this.input = input;
+        this.chunkSize = GetChunkSize();
+        this.chunkWriter = new ChunkWriter(Environment.ProcessorCount);
     }
-
+    
+    /// <summary>
+    ///  For debug
+    /// </summary>
+    public ChunkProducer(ChunkProducerConfig config)
+    {
+        this.input = config.Input;
+        this.chunkSize = config.ChunkSize;
+        this.chunksFolder = config.ChunkFolder;
+        this.chunkWriter = new ChunkWriter(config.MaxProduce);
+    }
+    
     private readonly int chunkSize; 
-    private readonly string sourcePath;
+    private readonly string input;
     private readonly ChunkWriter chunkWriter;
 
     private int number = 1;
-    private const string ChunksFolder = "./chunks";
-    string ChunkName => $"{ChunksFolder}/chunk_{number++}.txt";
+    private readonly string chunksFolder;
+    string ChunkName => $"{chunksFolder}/chunk_{number++}.txt";
 
     private async Task CreateChunkDirectory()
     {
         try
         {
-            if(Directory.Exists(ChunksFolder)) Directory.Delete(ChunksFolder, true);
-            Directory.CreateDirectory(ChunksFolder);
+            if(Directory.Exists(chunksFolder)) Directory.Delete(chunksFolder, true);
+            Directory.CreateDirectory(chunksFolder);
             // Sometimes it does not have time to create
-            while (!Directory.Exists(ChunksFolder))
+            while (!Directory.Exists(chunksFolder))
             {
                 await Task.Delay(1);
-                Directory.CreateDirectory(ChunksFolder);
+                Directory.CreateDirectory(chunksFolder);
             }
         }
         catch (Exception e)
         {
-            throw new AppException($"Problems connected with work folder creation {ChunksFolder} There may be problems with the operation of the program. Try to reboot your pc and run this program with administrator privileges", e);
+            throw new AppException($"Problems connected with work folder creation {chunksFolder} There may be problems with the operation of the program. Try to reboot your pc and run this program with administrator privileges", e);
         }
     }
     
@@ -236,7 +68,7 @@ public class ChunkProducer
     {
         await CreateChunkDirectory();
         List<Chunk> chunks = new();
-        await using FileStream fr = new(sourcePath, FileMode.Open, FileAccess.Read);
+        await using FileStream fr = new(input, FileMode.Open, FileAccess.Read);
         
         int bufSize = chunkSize - Global.MaxStringLength;
         var buf1 = ArrayPool<byte>.Shared.Rent(chunkSize); // https://adamsitnik.com/Array-Pool/
@@ -297,6 +129,15 @@ public class ChunkProducer
         await chunkWriter.WaitWhenAllTaskCompleted();
         var res = chunks.Select(x=> new ChunkForWrite(x.Path, x.Length)).ToArray();
         return res;
+    }
+    
+    private static int GetChunkSize()
+    {
+        const double memoryUsageForChunksCof = 0.90d;
+        long memoryForChunks = (long)(PcMemory.FreeMemoryBytes * memoryUsageForChunksCof);
+        long chunkSizeByProc = memoryForChunks / Environment.ProcessorCount;
+        if (chunkSizeByProc <= int.MaxValue) return (int)chunkSizeByProc;
+        return int.MaxValue;
     }
     
     private class ChunkWriter
@@ -390,67 +231,5 @@ public class Chunk : IDisposable
     {
         ArrayPool<byte>.Shared.Return(Line, false);
         Line = null!;
-    }
-}
-
-public class StringLineReader
-{
-    public static Chunk[] Chunks;
-
-    private static int Get2GbOrLess(long memory)
-    {
-        int gb2 = 209715200;
-        return memory >= gb2 ? gb2 : (int)memory;
-    }
-
-    public static void AllocateBufferForWrite()
-    {
-        /*int writeBufSize = Get2GbOrLess((long)(freeMemory * 0.05d));
-     ChunkLineWriter.writeBuffer = GC.AllocateUninitializedArray<byte>(writeBufSize, true);
-     ChunkLineWriter.writeToFileBuffer = GC.AllocateUninitializedArray<byte>(writeBufSize, true);
-     */
-    }
-    
-    public static Chunk[] CreateChunks(string file)
-    {
-        Console.WriteLine($"Total memory allowed {PcMemory.FreeMemoryMb} mb");
-        Console.WriteLine($"CPU cores allowed {Environment.ProcessorCount}");
-        
-        Chunks = CreateChunks();
-        
-        /*
-        using var sr = new StreamReader(file, Encoding.ASCII, false);
-        while (!sr.EndOfStream)
-        {
-            
-        }*/
-        return null;
-    }
-
-   
-
-    private static Chunk[] CreateChunks()
-    {
-        var chunks = new Chunk[Environment.ProcessorCount];
-        int chunkSize = GetChunkSize();
-        Console.WriteLine($"Chunk size = {chunkSize/1024/1024} mb");
-        for (int i = 0; i < chunks.Length; i++)
-        {
-            chunks[i] = new Chunk()
-            {
-                Line = GC.AllocateUninitializedArray<byte>(chunkSize, true)
-            };
-        }
-        return chunks;
-    }
-
-    private static int GetChunkSize()
-    {
-        const double memoryUsageForChunksCof = 0.90d;
-        Console.WriteLine($"Use - {memoryUsageForChunksCof * 100} % memory for chunks");
-        long memoryForChunks = (long)(PcMemory.FreeMemoryBytes * memoryUsageForChunksCof);
-        long chunkSizeByProc = memoryForChunks / Environment.ProcessorCount;
-        if (chunkSizeByProc <= int.MaxValue) return (int)chunkSizeByProc;
-        return int.MaxValue;
     }
 }
