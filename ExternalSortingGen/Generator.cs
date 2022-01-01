@@ -8,7 +8,7 @@ public static class Generator
     public static void WriteTestToFile(string output, string test, int proposalCount, int seed)
     {
         if (proposalCount > Global.StrArray.Length) throw new AppException($"Have not enough proposals max is {Global.StrArray.Length}");
-        var outStrings = new List<string>();
+        var outStrings = new List<string>(proposalCount * Global.MaxNumber);
         for (int i = 0; i < proposalCount; i++)
         {
             var str = new StringBuilder();
