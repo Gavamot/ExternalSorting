@@ -5,6 +5,32 @@ namespace ExternalSortingGen;
 
 public static class Generator
 {
+    public static string GenerateRandomString(this Random rnd)
+    {
+        var randomWord = Global.StrArray[rnd.Next(0, Global.StrArray.Length)];
+        var randomNumber = rnd.Next(Global.MinNumber, Global.MaxNumber);
+        return $"{randomNumber}.{randomWord}\r\n";
+    }
+    public static Chunk GenerateRandomInMemoryTest(ulong bytesCount, int seed)
+    {
+        var rnd = new Random(seed);
+        ulong cur = 0;
+        StringBuilder builder = new ();
+        do
+        {
+            var str = rnd.GenerateRandomString();
+            cur += (ulong) str.Length;
+            builder.Append(str);
+        } while (cur < bytesCount);
+
+        Chunk chunk = new();
+        var text = builder.ToString();
+        chunk.Line = Encoding.ASCII.GetBytes(text);
+        chunk.Start = 0;
+        chunk.End = text.Length - 1;
+        return chunk;
+    }
+
     public static void WriteTestToFile(string output, string test, int proposalCount, int seed)
     {
         if (proposalCount > Global.StrArray.Length) throw new AppException($"Have not enough proposals max is {Global.StrArray.Length}");
@@ -53,13 +79,12 @@ public static class Generator
             var str = new StringBuilder();
             for (int i = 0; i < need; i++)
             {
-                var randomWord = Global.StrArray[rnd.Next(0, Global.StrArray.Length)];
-                var randomNumber = rnd.Next(Global.MinNumber, Global.MaxNumber);
-                str.Append($"{randomNumber}.{randomWord}\r\n");
+                str.Append(rnd.GenerateRandomString());
             }
             File.AppendAllText(output, str.ToString(), Encoding.ASCII);
             done += (ulong) need;
         }
     }
+    
     
 }

@@ -185,7 +185,7 @@ public class Chunk : IDisposable
     public int Length => End - Start + 1;
     public string Path { get; set; }
     
-    StringLine[] GetSortedLines()
+    public StringLine[] GetSortedLines() // public for test
     {
         var size = Length / Global.MidStringLength;
         List<StringLine> lines = new(size); // ? I can pool it if need faster

@@ -16,6 +16,30 @@ public class ChunkMerger
         File.Delete(Output);
     }
     
+    [Test]
+    public async Task CheckExternalSorting_HugeFile()
+    {
+        ChunkProducer producer = new(new ChunkProducerConfig()
+        {
+            Input = "C:\\dev\\ExternalSorting\\ExternalSortingGen\\bin\\Release\\net6.0\\publish\\input.txt",
+            ChunkFolder = "./data/chunks",
+            ChunkSize = 1024 * 1024 * 8,
+            MaxProduce = 8
+        });
+        
+        GC.Collect(2, GCCollectionMode.Forced, true, true);
+        var chunks = await producer.CreateChunks();
+        
+        GC.Collect(2, GCCollectionMode.Forced, true, true);
+        var merger = new Domain.ChunkMerger(new()
+        {
+            BufferFoWriteBytes = 1024 * 1024 * 50,
+            MinForSizeBytes = 1024 * 4
+        });
+        await merger.MergeChunks(Output, chunks);
+
+    }
+    
     [TestCase("./data/input.txt", "./data/test.txt", 1024 * 1024, 16)]
     [TestCase("./data/input2.txt", "./data/test2.txt", 1024 * 5, 16)]
     [TestCase("./data/input.txt", "./data/test.txt", 1024 * 1024 * 10, 1)]
@@ -36,8 +60,8 @@ public class ChunkMerger
         GC.Collect(2, GCCollectionMode.Forced, true, true);
         var merger = new Domain.ChunkMerger(new()
         {
-            BufferFoWriteBytes = 1024,
-            MinForSizeBytes = 1024
+            BufferFoWriteBytes = 1024 * 1024,
+            MinForSizeBytes = 1024 *  1024
         });
         await merger.MergeChunks(Output, chunks);
         
