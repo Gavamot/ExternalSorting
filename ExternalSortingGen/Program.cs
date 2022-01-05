@@ -7,7 +7,7 @@ try
 {
     Parser.Default.ParseArguments<Options>(args).WithParsed(options =>
     {
-        File.Delete(options.Output);
+        AppFile.MustRemove(options.Output);
         if (string.IsNullOrWhiteSpace(options.Test))
         {
             var allowsRows = PcMemory.FreeMemoryBytes / 512;
@@ -42,7 +42,7 @@ catch(Exception e)
 class Options
 {
     [Option('c', "count", Required = true, HelpText = "Rows  for simple mode. Count of words for test mode")]
-    public ulong Count { get; set; }
+    public long Count { get; set; }
     
     [Option('o', "output", Required = false, Default = "./input.txt", HelpText = "Output file")]
     public string Output { get; set; }

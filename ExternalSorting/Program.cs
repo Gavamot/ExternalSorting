@@ -9,12 +9,12 @@ const string output = "./output.txt";
 try
 {
     var t = Stopwatch.StartNew();
-    var chunkProducer = new ChunkProducer(new ChunkProducerConfig());
+    var config = new ChunkProducerConfig();
+    var chunkProducer = new ChunkProducer(config);
     var chunks = await chunkProducer.CreateChunks();
     
-    var chunkMergerConfig = new ChunkMergerConfig();
-    var chunkMerger = new ChunkMerger(chunkMergerConfig);
-    await chunkMerger.MergeChunks(output, chunks);
+    var chunkMerger = new ChunkMerger();
+    await chunkMerger.MergeChunksAsync(output, config.ChunkFolder, chunks);
     
     Console.WriteLine($"IT IS DONE HAVE SPEND {t.Elapsed.Minutes} minutes");
 }

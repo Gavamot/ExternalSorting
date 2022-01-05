@@ -9,7 +9,7 @@ namespace ExternalSorting.Test;
 public class ChunkMerger
 {
     const string Output = "./data/output.txt";
-    
+    private const string ChunksFolder = "./data/chunks";
     [TearDown]
     public void TearDown()
     {
@@ -23,25 +23,21 @@ public class ChunkMerger
         {
             Input = "C:\\dev\\ExternalSorting\\ExternalSortingGen\\bin\\Release\\net6.0\\publish\\input.txt",
             ChunkFolder = "./data/chunks",
-            ChunkSize = 1024 * 1024 * 8,
-            MaxProduce = 8
+            ChunkSize = 1024 * 1024 * 128,
+            MaxProduce = Environment.ProcessorCount
         });
         
         GC.Collect(2, GCCollectionMode.Forced, true, true);
         var chunks = await producer.CreateChunks();
+        producer = null;
         
         GC.Collect(2, GCCollectionMode.Forced, true, true);
-        var merger = new Domain.ChunkMerger(new()
-        {
-            BufferFoWriteBytes = 1024 * 1024 * 50,
-            MinForSizeBytes = 1024 * 4
-        });
-        await merger.MergeChunks(Output, chunks);
-
+        var merger = new Domain.ChunkMerger();
+        await merger.MergeChunksAsync(Output, ChunksFolder, chunks);
     }
     
     [TestCase("./data/input.txt", "./data/test.txt", 1024 * 1024, 16)]
-    [TestCase("./data/input2.txt", "./data/test2.txt", 1024 * 5, 16)]
+    [TestCase("./data/input2.txt", "./data/test2.txt", 1024 * 1024, 16)]
     [TestCase("./data/input.txt", "./data/test.txt", 1024 * 1024 * 10, 1)]
     [TestCase("./data/input.txt", "./data/test.txt", 1024 * 1024 * 10, 44)]
     public async Task CheckExternalSorting_RandomValues(string input, string test, int chunkSize, int maxProduce)
@@ -58,12 +54,8 @@ public class ChunkMerger
         var chunks = await producer.CreateChunks();
         
         GC.Collect(2, GCCollectionMode.Forced, true, true);
-        var merger = new Domain.ChunkMerger(new()
-        {
-            BufferFoWriteBytes = 1024 * 1024,
-            MinForSizeBytes = 1024 *  1024
-        });
-        await merger.MergeChunks(Output, chunks);
+        var merger = new Domain.ChunkMerger();
+        await merger.MergeChunksAsync(Output, ChunksFolder, chunks);
         
         var actual = await File.ReadAllTextAsync(Output);
         var expected = await File.ReadAllTextAsync(test);

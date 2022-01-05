@@ -1,4 +1,6 @@
-﻿namespace Domain;
+﻿using System.Buffers;
+
+namespace Domain;
 
 public static class BinaryMath
 {

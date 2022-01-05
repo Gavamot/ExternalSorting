@@ -9,7 +9,7 @@ namespace ExternalSorting.Test;
 
 public class SortingTest
 {
-    private long ExecutionTimeMs(ulong chunkSizeBytes)
+    private long ExecutionTimeMs(long chunkSizeBytes)
     {
         var t = Generator.GenerateRandomInMemoryTest(chunkSizeBytes, 10);
         var sw1 = Stopwatch.StartNew();

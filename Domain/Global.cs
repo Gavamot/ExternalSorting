@@ -2,6 +2,58 @@
 
 namespace Domain;
 
+public static class AppFile
+{
+    public static void TryRemoveFolder(string path)
+    {
+        try
+        {
+            if(Directory.Exists(path)) Directory.Delete(path, true);
+        }
+        catch
+        {
+            Console.WriteLine("Can not remove chunk folder");
+        }
+    }
+    public static void MustRemove(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+            {
+                Console.WriteLine($"file ({path}) is already exist. It will be removed");
+                File.Delete(path);
+            }
+        }
+        catch (IOException e)
+        {
+            throw new AppException($"file {path} already exist. Cam not remove it", e);
+        }
+    }
+    public static void TryRemove(string path)
+    {
+        try
+        {
+            File.Delete(path);
+        }
+        catch(Exception e)
+        {
+            Console.WriteLine($"Can not remove file {path}");
+        }
+    }
+}
+
+public static class Ext
+{
+    public static void Foreach<T>(this IEnumerable<T> self, Action<T> act)
+    {
+        foreach (var item in self)
+        {
+            act(item);
+        }
+    }
+}
+
 public class AsciiCodes
 {
     public const byte LineEnd = 10;

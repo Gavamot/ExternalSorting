@@ -11,19 +11,19 @@ public static class Generator
         var randomNumber = rnd.Next(Global.MinNumber, Global.MaxNumber);
         return $"{randomNumber}.{randomWord}\r\n";
     }
-    public static Chunk GenerateRandomInMemoryTest(ulong bytesCount, int seed)
+    public static ChunkProducer.Chunk GenerateRandomInMemoryTest(long bytesCount, int seed)
     {
         var rnd = new Random(seed);
-        ulong cur = 0;
+        long cur = 0;
         StringBuilder builder = new ();
         do
         {
             var str = rnd.GenerateRandomString();
-            cur += (ulong) str.Length;
+            cur += str.Length;
             builder.Append(str);
         } while (cur < bytesCount);
 
-        Chunk chunk = new();
+        ChunkProducer.Chunk chunk = new();
         var text = builder.ToString();
         chunk.Line = Encoding.ASCII.GetBytes(text);
         chunk.Start = 0;
@@ -68,21 +68,21 @@ public static class Generator
         File.AppendAllText(test, unsorted.ToString(), Encoding.ASCII);
     }
     
-    public static void WriteToFile(string output, ulong count, int butchSize, int seed)
+    public static void WriteToFile(string output, long count, int butchSize, int seed)
     {
-        ulong done = 0;
+        long done = 0;
         var rnd = new Random(seed);
         while (done < count)
         {
-            ulong rest = count - done;
-            int need = (int) (rest > (ulong) butchSize ? (ulong) butchSize : rest);
+            long rest = count - done;
+            int need = (int) (rest > butchSize ? butchSize : rest);
             var str = new StringBuilder();
             for (int i = 0; i < need; i++)
             {
                 str.Append(rnd.GenerateRandomString());
             }
             File.AppendAllText(output, str.ToString(), Encoding.ASCII);
-            done += (ulong) need;
+            done += need;
         }
     }
     
