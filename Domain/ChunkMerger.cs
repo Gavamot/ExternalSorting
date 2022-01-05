@@ -79,7 +79,7 @@ public class ChunkMerger
     
     class BigChunkNameGenerator
     {
-        private int ChunkNum = 0;
+        private int chunkNum = 0;
         private readonly string startOfName;
         
         public BigChunkNameGenerator(string chunksFolder)
@@ -89,7 +89,7 @@ public class ChunkMerger
 
         public string GetName()
         {
-            int num = Interlocked.Increment(ref ChunkNum);
+            int num = Interlocked.Increment(ref chunkNum);
             return $"{startOfName}_{num}.txt";
         }
     }
