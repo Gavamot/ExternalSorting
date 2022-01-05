@@ -1,11 +1,12 @@
 ﻿using System.Buffers;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using Domain;
 
 //var maxProduce = Environment.ProcessorCount * 2;
 //var chunkSizeBytes = 1024 * 1024 * 100;
 
-const string output = "./output.txt"; 
+const string output = "./output.txt";
 try
 {
     var t = Stopwatch.StartNew();

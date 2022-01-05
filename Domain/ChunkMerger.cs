@@ -3,6 +3,23 @@ using System.Collections.Concurrent;
 
 namespace Domain;
 
+public static class MemoryAllocator
+{
+    private static int ProcessorCount = Environment.ProcessorCount;
+
+    public static int GetChunkBufferSize(int chunksCount)
+    {
+        GC.Collect(2, GCCollectionMode.Forced, true, true);
+        var mergersCount = chunksCount > ProcessorCount ? ProcessorCount : chunksCount;
+        long free = PcMemory.FreeMemoryBytes;
+        const int permanentCostBytes = 1_048_576;
+        const int bufferCount = 2; // writeBuffer + chunk1
+        double chunkBufferSize = (free / (mergersCount * bufferCount)) - (permanentCostBytes * mergersCount);
+        if (chunkBufferSize > int.MaxValue) return int.MaxValue;
+        return (int)chunkBufferSize;
+    }
+}
+
 public class ChunkMerger
 {
     public static readonly ArrayPool<byte> bufferPool = ArrayPool<byte>.Create(); // Very bad spagety code
@@ -13,29 +30,44 @@ public class ChunkMerger
         AppFile.MustRemove(path);
         long totalSizeBytes = allChunks.Sum(x => x.Length);
         chunksQueue = new ConcurrentQueue<ChunkForWrite>(allChunks);
-        int chunkBufSizeBytes = GetChunkBufferSize(allChunks);
+        int chunkBufSizeBytes = MemoryAllocator.GetChunkBufferSize(allChunks.Length);
         
         ChunkForWrite chunk1;
         while (true)
         {
+            chunk1 = await GetChunkAsync();
+            if (chunk1.Length >= totalSizeBytes) break;
+            
+            if (chunk1.Length > (chunkBufSizeBytes * 6L))
+            {
+                try
+                {
+                    checked
+                    {
+                        chunkBufSizeBytes *= 2;
+                        maxProduce /= 2;
+                    }
+                }
+                catch(Exception e)
+                {
+                   await Console.Error.WriteLineAsync("Overflow int buffers");
+                }
+            }
+            
             while (produce >= maxProduce)
             {
                 await Task.Delay(1);
             }
-
-            chunk1 = await GetChunkAsync();
-            if (chunk1.Length >= totalSizeBytes) break;
-            ChunkForWrite chunk2 = await GetChunkAsync();
-            var chunks = new[] {chunk1, chunk2};
             
-            Interlocked.Increment(ref produce);
-            
-            Task.Factory.StartNew(() =>
+           var (chunksBytes, chunks) = await GetBigChunkAsync(chunk1, chunkBufSizeBytes, totalSizeBytes);
+           Interlocked.Increment(ref produce);
+           var bufferWriteBytes = chunkBufSizeBytes;
+           Task.Factory.StartNew(() =>
             {
                 try
                 {
                     var bigChunkName = chunkNameGenerator.GetName();    
-                    var bigChunk = new ChunkReadersCollection().SortChunks(bigChunkName, chunks, chunkBufSizeBytes);
+                    var bigChunk = new ChunkReadersCollection().SortChunks(bigChunkName, chunks, bufferWriteBytes, chunksBytes);
                     chunksQueue.Enqueue(bigChunk);
                     Interlocked.Decrement(ref produce);
                 }
@@ -52,6 +84,25 @@ public class ChunkMerger
         AppFile.TryRemoveFolder(chunksFolder);
     }
 
+    private async Task<(int bufferSize, List<ChunkForWrite>)> GetBigChunkAsync(ChunkForWrite chunk1, int bufferSizeBytes, long totalBytes)
+    {
+        List<ChunkForWrite> chunks = new(){ chunk1 };
+        long cur = chunk1.Length;
+        while (cur < totalBytes)
+        {
+            var chunk = await GetChunkAsync();
+            if (cur + chunk.Length >= bufferSizeBytes)
+            {
+                chunksQueue.Enqueue(chunk);
+                break;
+            }
+            chunks.Add(chunk);
+            cur += chunk.Length;
+        }
+        return ((int)(cur / chunks.Count), chunks);
+    }
+    
+    
     private async Task<ChunkForWrite> GetChunkAsync()
     {
         ChunkForWrite chunk;
@@ -62,24 +113,14 @@ public class ChunkMerger
         return chunk;
     }
     
-    private int GetChunkBufferSize(ChunkForWrite[] chunks)
-    {
-        GC.Collect(2, GCCollectionMode.Forced, true, true);
-        var mergersCount = chunks.Length > Environment.ProcessorCount ? Environment.ProcessorCount : chunks.Length;
-        long free = PcMemory.FreeMemoryBytes;
-        const int permanentCostBytes = 1_048_576;
-        double chunkBufferSize = (free / (mergersCount * 3)) - (permanentCostBytes * mergersCount);
-        if (chunkBufferSize > int.MaxValue) return BinaryMath.ToNearestPow2(int.MaxValue);
-        return BinaryMath.ToNearestPow2((int)chunkBufferSize);
-    }
     
     private ConcurrentQueue<ChunkForWrite> chunksQueue;
     private volatile int produce = 0;
-    private readonly int maxProduce = Environment.ProcessorCount;
+    private int maxProduce = Environment.ProcessorCount;
     
     class BigChunkNameGenerator
     {
-        private int ChunkNum = 0;
+        private int chunkNum = 0;
         private readonly string startOfName;
         
         public BigChunkNameGenerator(string chunksFolder)
@@ -89,18 +130,18 @@ public class ChunkMerger
 
         public string GetName()
         {
-            int num = Interlocked.Increment(ref ChunkNum);
+            int num = Interlocked.Increment(ref chunkNum);
             return $"{startOfName}_{num}.txt";
         }
     }
     
     class ChunkReadersCollection
     {
-        public ChunkForWrite SortChunks(string path, ChunkForWrite[] chunks, int bufferSizeBytes)
+        public ChunkForWrite SortChunks(string path, List<ChunkForWrite> chunks, int bufferWriteBytes, int bufferReadChunkBytes)
         {
-            int maxWriteBytes = bufferSizeBytes - Global.MaxStringLength;
-            byte[] writeBuffer = bufferPool.Rent(bufferSizeBytes);
-            var chunkReaders = chunks.Select(x => new ChunkReader(x, bufferSizeBytes)).ToArray();
+            int maxWriteBytes = bufferWriteBytes - Global.MaxStringLength;
+            byte[] writeBuffer = bufferPool.Rent(bufferWriteBytes);
+            var chunkReaders = chunks.Select(x => new ChunkReader(x, bufferReadChunkBytes)).ToArray();
             IEnumerator<StringLine?>[] readTasks = chunkReaders.Select(x=> x.ReadLines()).ToArray();
             readTasks.Foreach(x=> x.MoveNext());
             var lines = readTasks.Select(x => x.Current).ToArray();
