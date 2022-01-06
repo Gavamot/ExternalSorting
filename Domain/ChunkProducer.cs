@@ -8,23 +8,24 @@ public class ChunkProducerConfig
 {
     public string Input { get; set; } = "./input.txt";
     public string ChunkFolder { get; set; } = "./chunks";
-    public int ChunkSize { get; set; } = 1024 * 1024 * 32;
+    public int ChunkSize { get; set; } = GetChunkSize();
     public int MaxProduce { get; set; } = Environment.ProcessorCount;
+    public const int OptimalChunkSizeMb = 64;
+    const double MemoryUsageForChunksCof = 0.80d;
+    private static int GetChunkSize()
+    {
+        long memoryForChunks = (long)(PcMemory.FreeMemoryBytes * MemoryUsageForChunksCof);
+        long chunkSizeByProc = memoryForChunks / Environment.ProcessorCount;
+        if (chunkSizeByProc.BytesToMbs() > OptimalChunkSizeMb) return (int) OptimalChunkSizeMb.MbsToBytes();
+        Console.WriteLine($"Your Pc has not enough memory. For normal works need {OptimalChunkSizeMb * Environment.ProcessorCount}");
+        return (int) chunkSizeByProc;
+    }
 }
 
 public class ChunkProducer
 {
     public readonly ArrayPool<byte> bufferPool = ArrayPool<byte>.Create(); // Very bad spagety code
-    public ChunkProducer(string input)
-    {
-        this.input = input;
-        this.chunkSize = GetChunkSize();
-        this.chunkWriter = new ChunkWriter(bufferPool, Environment.ProcessorCount);
-    }
     
-    /// <summary>
-    ///  For debug
-    /// </summary>
     public ChunkProducer(ChunkProducerConfig config)
     {
         this.input = config.Input;
@@ -68,7 +69,7 @@ public class ChunkProducer
         
         int bufSize = chunkSize - Global.MaxStringLength;
         var buf1 = bufferPool.Rent(chunkSize); // https://adamsitnik.com/Array-Pool/
-        int buf1Red = await fr.ReadAsync(buf1, 0, bufSize);
+        int buf1Red = fr.Read(buf1, 0, bufSize);
         
         Chunk chunk = new()
         {
@@ -85,7 +86,7 @@ public class ChunkProducer
             await chunkWriter.WaitProduce();
             
             var buf2 = bufferPool.Rent(chunkSize);
-            var buf2Red = await fr.ReadAsync(buf2.AsMemory(0, bufSize));
+            var buf2Red = fr.Read(buf2,0, bufSize);
             
             startNextChunk = 0;
             if (buf1[buf1Red - 1] != AsciiCodes.LineEnd)
@@ -128,15 +129,6 @@ public class ChunkProducer
         return res;
     }
     
-    private static int GetChunkSize()
-    {
-        const double memoryUsageForChunksCof = 0.90d;
-        long memoryForChunks = (long)(PcMemory.FreeMemoryBytes * memoryUsageForChunksCof);
-        long chunkSizeByProc = memoryForChunks / Environment.ProcessorCount;
-        if (chunkSizeByProc <= int.MaxValue) return (int)chunkSizeByProc;
-        return int.MaxValue;
-    }
-    
     private class ChunkWriter
     {
         public ChunkWriter(ArrayPool<byte> bufferPool, int maxProduce)
@@ -149,7 +141,7 @@ public class ChunkProducer
         private readonly int maxProduce;
         private volatile int produce;
         
-        private List<Task> Tasks = new();
+        private readonly List<Task> Tasks = new();
         public void SortChunkAndWriteToDisk(Chunk chunk)
         {
             Interlocked.Increment(ref produce);
@@ -184,20 +176,27 @@ public class ChunkProducer
     
         public StringLine[] GetSortedLines() // public for test
         {
-            var size = Length / Global.MidStringLength;
-            List<StringLine> lines = new(size); // ? I can pool it if need faster
-            int lineStart = Start;
-        
-            for (int i = Start; i <= End; i++)
+            try
             {
-                if (Line[i] != AsciiCodes.LineEnd) continue;
-                lines.Add(new(Line, lineStart, i));
-                lineStart = i + 1;
-            }
+                var size = Length / Global.MidStringLength;
+                List<StringLine> lines = new(size); // ? I can pool it if need faster
+                int lineStart = Start;
+                for (int i = Start; i <= End; i++)
+                {
+                    if (Line[i] != AsciiCodes.LineEnd) continue;
+                    lines.Add(new(Line, lineStart, i));
+                    lineStart = i + 1;
+                }
 
-            var res = lines.ToArray();
-            Sorting.QuickSort.Sort(res);
-            return res;
+                var res = lines.ToArray();
+                Sorting.HeapSort(res);
+                return res;
+            }
+            catch(Exception e)
+            {
+                var a = 1;
+                return null;
+            }
         }
 
         void SortedLinesToByteArray(StringLine[] lines, byte[] writeBuffer)

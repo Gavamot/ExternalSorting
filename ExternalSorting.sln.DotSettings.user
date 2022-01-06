@@ -1,24 +1,7 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=412a039e_002Db4bc_002D40aa_002Db287_002D1324a49bb641/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Same20Strings_OneStringInChunk_Created20Chunks" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.ChunkProducerTest.Same20Strings_OneStringInChunk_Created20Chunks&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.ChunkProducerTest.DifferentStrings_DifferentChunks_ChunksCreated&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.StringLineTest&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.ChunkProducerTest&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=7e20e3ae_002Ddcbc_002D475d_002D9c3e_002Daed66912060a/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="StringLineTest" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.StringLineTest&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.ChunkProducerTest.Same20Strings_OneStringInChunk_Created20Chunks&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.BinaryMath&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.ChunkMerger.Same20Strings_OneStringInChunk_Created20Chunks&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.SortingTest.OptimalChunkSize&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.ChunkMerger.CheckExternalSorting_HugeFile&lt;/TestId&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.ChunkMerger.CheckExternalSorting_RandomValues&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=c76df18d_002Df6ca_002D4bc8_002Dac9f_002D7b162a9d193e/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Compare" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+	
+	
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=c76df18d_002Df6ca_002D4bc8_002Dac9f_002D7b162a9d193e/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Compare" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.StringLineTest&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.SortingTest&lt;/TestId&gt;&#xD;
@@ -26,9 +9,9 @@
     &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.ChunkProducerTest.Same20Strings_OneStringInChunk_Created20Chunks&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=cc2cd0be_002D1c0f_002D46e1_002Da134_002D43a55f7a842a/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Same20Strings_OneStringInChunk_Created20Chunks #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=c95fc110_002D08b7_002D4a41_002D8770_002Dc481f0b169b9/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="CheckExternalSorting_HugeFile" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.ChunkMerger.CheckExternalSorting_RandomValues&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::47CFF619-B7D0-4D4A-A3A6-E291FE1145A1::net6.0::ExternalSorting.Test.ChunkMerger.CheckExternalSorting_HugeFile&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
-&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
+&lt;/SessionState&gt;</s:String>
+	</wpf:ResourceDictionary>

@@ -1,0 +1,5 @@
+#for generate 16 000 mb 
+.\ExternalSortingGen.exe -m -c 16000
+#for sotring
+.\ExternalSorting.exe
+

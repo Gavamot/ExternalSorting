@@ -4,6 +4,8 @@ namespace Domain;
 
 public static class BinaryMath
 {
+    public static long MbsToBytes(this int mb) => mb * 1024L * 1024L;  
+    public static long MbsToBytes(this long mb) => mb * 1024L * 1024L;  
     public static int BytesToMbs(this long bytes) => (int)(bytes / 1024 / 1024);   
     public static int BytesToMbs(this int bytes) => bytes / 1024 / 1024;
     public static int ToNearestPow2(int n)
