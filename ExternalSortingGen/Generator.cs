@@ -86,17 +86,16 @@ public static class Generator
         }
     }
     
-    public static void WriteToFileMb(string output, long mb, int seed)
+    public static void WriteToFileMb(string output, long mb, int bufferBytes, int seed)
     {
         long done = 0;
         var rnd = new Random(seed);
         long bytes = mb * 1024 * 1024;
-        int bufSize = 10 * 1024 * 1024;
         while (done < bytes)
         {
             int cur = 0;
             long rest = bytes - done;
-            int need = (int) (rest > bufSize ? bufSize : rest);
+            int need = (int) (rest > bufferBytes ? bufferBytes : rest);
             var str = new StringBuilder();
             while (cur < need)
             {

@@ -21,7 +21,7 @@ try
             if (options.Mb)
             {
                 Console.WriteLine($"START TEST GENERATION {options.Count} mb");
-                Generator.WriteToFileMb(options.Output, (int)options.Count, options.Seed);
+                Generator.WriteToFileMb(options.Output, (int)options.Count, options.BufferBytes, options.Seed);
             }
             else
             {
@@ -48,6 +48,9 @@ catch(Exception e)
 }
 class Options
 {
+    [Option('b', "buffer", Required = false, HelpText = "buffer size bytes")]
+    public int BufferBytes { get; set; } = 1024 * 1024 * 512;
+    
     [Option('m', "mb", Required = false, HelpText = "Generate in mb")]
     public bool Mb { get; set; }
     
