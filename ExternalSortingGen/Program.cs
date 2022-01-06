@@ -8,6 +8,7 @@ try
     Parser.Default.ParseArguments<Options>(args).WithParsed(options =>
     {
         AppFile.MustRemove(options.Output);
+        var sw = Stopwatch.StartNew();
         if (string.IsNullOrWhiteSpace(options.Test))
         {
             var allowsRows = PcMemory.FreeMemoryBytes / 512;
@@ -16,23 +17,29 @@ try
                 Console.Error.WriteLine("Not enough free RAM for operation");
                 return;
             }
-            const int maxSize = 20_000_000;
-            var butchSize = allowsRows > maxSize ? maxSize : allowsRows;
-        
-            Console.WriteLine($"START SIMPLE GENERATION  count = {options.Count} - butch size = {butchSize}");
-            var sw = Stopwatch.StartNew();
-            Generator.WriteToFile(options.Output, options.Count, (int)butchSize, options.Seed);
-            sw.Stop();
-            Console.WriteLine($"DONE - spend {sw.ElapsedMilliseconds} ms");
+
+            if (options.Mb)
+            {
+                Console.WriteLine($"START TEST GENERATION {options.Count} mb");
+                Generator.WriteToFileMb(options.Output, (int)options.Count, options.Seed);
+            }
+            else
+            {
+                const int maxSize = 20_000_000;
+                var butchSize = allowsRows > maxSize ? maxSize : allowsRows;
+                Console.WriteLine($"START SIMPLE GENERATION  count = {options.Count} - butch size = {butchSize}");
+                Generator.WriteToFile(options.Output, options.Count, (int)butchSize, options.Seed); 
+            }
         }
         else
         {
             Console.WriteLine($"START TEST GENERATION words count = {options.Count}");
-            var sw = Stopwatch.StartNew();
-            Generator.WriteTestToFile(options.Output, options.Test, (int)options.Count, options.Seed);
-            sw.Stop();
-            Console.WriteLine($"DONE - spend {sw.ElapsedMilliseconds} ms");
+            Generator.WriteTestToFile(options.Output, options.Test, (int)options.Count, options.Seed);  
         }
+        
+        sw.Stop();
+        Console.WriteLine($"DONE - spend {sw.ElapsedMilliseconds} ms");   
+        
     }).WithNotParsed(errs => Console.Error.WriteLine("Arguments are wrong"));
 }
 catch(Exception e)
@@ -41,7 +48,10 @@ catch(Exception e)
 }
 class Options
 {
-    [Option('c', "count", Required = true, HelpText = "Rows  for simple mode. Count of words for test mode")]
+    [Option('m', "mb", Required = false, HelpText = "Generate in mb")]
+    public bool Mb { get; set; }
+    
+    [Option('c', "count", Required = false, HelpText = "Rows  for simple mode. Count of words for test mode")]
     public long Count { get; set; }
     
     [Option('o', "output", Required = false, Default = "./input.txt", HelpText = "Output file")]

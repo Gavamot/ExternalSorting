@@ -51,7 +51,7 @@ public static class Generator
         }
         WriteUnsortedForTest(output, outStrings, seed);
     }
-
+    
     private static void WriteUnsortedForTest(string test, List<string> outStrings, int seed)
     {
         StringBuilder unsorted = new ();
@@ -86,5 +86,26 @@ public static class Generator
         }
     }
     
-    
+    public static void WriteToFileMb(string output, long mb, int seed)
+    {
+        long done = 0;
+        var rnd = new Random(seed);
+        long bytes = mb * 1024 * 1024;
+        int bufSize = 10 * 1024 * 1024;
+        while (done < bytes)
+        {
+            int cur = 0;
+            long rest = bytes - done;
+            int need = (int) (rest > bufSize ? bufSize : rest);
+            var str = new StringBuilder();
+            while (cur < need)
+            {
+                var word = rnd.GenerateRandomString();
+                cur += word.Length;
+                str.Append(word);
+            }
+            File.AppendAllText(output, str.ToString(), Encoding.ASCII);
+            done += cur;
+        }
+    }
 }
