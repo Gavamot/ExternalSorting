@@ -9,7 +9,7 @@ public class ChunkMerger
     
     private ConcurrentQueue<ChunkForWrite> chunksQueue;
     private volatile int produce = 0;
-    private readonly int maxProduce = Environment.ProcessorCount;
+    private int maxProduce = Environment.ProcessorCount;
     private int restOfChunks = 0;
     
     public async Task MergeChunksAsync(string path, string chunksFolder, ChunkForWrite[] allChunks)
@@ -33,6 +33,7 @@ public class ChunkMerger
             if (restOfChunks < maxProduce)
             {
                 chunkBufSizeBytes = GetChunkBufferSize(restOfChunks);
+                maxProduce--;
             }
             
             chunk1 = await GetChunkAsync();
