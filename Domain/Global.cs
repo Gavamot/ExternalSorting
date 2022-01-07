@@ -63,14 +63,14 @@ public class AsciiCodes
 public static class Global
 {
     public static readonly string[] StrArray = {
-        "Something something something",
-        "Cherry is the best",
-        "Banana is yellow",
-        "Apple",
-        "Blueberry is better than the best",
-        "Strawberry is very delicious",
-        "Pineapple is sweet and tasty",
-        "What you see is what you get"
+        "Something something something. Botrer is very big stadium. You mst tell me it.",
+        "Cherry is the best. Cherry is the best. Cherry is the best. NULL is object.",
+        "Banana is yellow. I see you faster. Horidor jort verty lor",
+        "Apple as banana is very testy fruit. Cilcure jort.",
+        "Blueberry is better than the best. Ms by test",
+        "Strawberry is very delicious. Send me back it gotra",
+        "Pineapple is sweet and tasty. Hahafa is senderey. Segment of memory fully rotated.",
+        "What you see is what you get. Jorte fort an my hort. Secret is mine. Semgonro norto est."
     };
 
     public const int MinNumber = 1; 

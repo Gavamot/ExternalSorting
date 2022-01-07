@@ -194,7 +194,6 @@ public class ChunkProducer
             }
             catch(Exception e)
             {
-                var a = 1;
                 return null;
             }
         }
