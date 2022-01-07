@@ -10,7 +10,7 @@ public class ChunkProducerConfig
     public string ChunkFolder { get; set; } = "./chunks";
     public int ChunkSize { get; set; } = GetChunkSize();
     public int MaxProduce { get; set; } = Environment.ProcessorCount;
-    public const int OptimalChunkSizeMb = 64;
+    public const int OptimalChunkSizeMb = 32;
     const double MemoryUsageForChunksCof = 0.80d;
     private static int GetChunkSize()
     {

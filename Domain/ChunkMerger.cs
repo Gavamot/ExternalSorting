@@ -7,13 +7,20 @@ public class ChunkMerger
 {
     public static readonly ArrayPool<byte> bufferPool = ArrayPool<byte>.Create(); // Very bad spagety code
     
+    private ConcurrentQueue<ChunkForWrite> chunksQueue;
+    private volatile int produce = 0;
+    private readonly int maxProduce = Environment.ProcessorCount;
+    private int restOfChunks = 0;
+    
     public async Task MergeChunksAsync(string path, string chunksFolder, ChunkForWrite[] allChunks)
     {
+        restOfChunks = allChunks.Length;
         BigChunkNameGenerator chunkNameGenerator = new(chunksFolder);
         AppFile.MustRemove(path);
         long totalSizeBytes = allChunks.Sum(x => x.Length);
         chunksQueue = new ConcurrentQueue<ChunkForWrite>(allChunks);
-        int chunkBufSizeBytes = GetChunkBufferSize(allChunks);
+        var mergeThreads = maxProduce > allChunks.Length ? allChunks.Length : maxProduce; 
+        int chunkBufSizeBytes = GetChunkBufferSize(mergeThreads);
         
         ChunkForWrite chunk1;
         while (true)
@@ -23,19 +30,26 @@ public class ChunkMerger
                 await Task.Delay(1);
             }
 
+            if (restOfChunks < maxProduce)
+            {
+                chunkBufSizeBytes = GetChunkBufferSize(restOfChunks);
+            }
+            
             chunk1 = await GetChunkAsync();
             if (chunk1.Length >= totalSizeBytes) break;
             ChunkForWrite chunk2 = await GetChunkAsync();
             var chunks = new[] {chunk1, chunk2};
             
             Interlocked.Increment(ref produce);
-            
+            restOfChunks--;
+
+            var bytes = chunkBufSizeBytes;
             Task.Factory.StartNew(() =>
             {
                 try
                 {
                     var bigChunkName = chunkNameGenerator.GetName();    
-                    var bigChunk = new ChunkReadersCollection().SortChunks(bigChunkName, chunks, chunkBufSizeBytes);
+                    var bigChunk = new ChunkReadersCollection().SortChunks(bigChunkName, chunks, bytes);
                     chunksQueue.Enqueue(bigChunk);
                     Interlocked.Decrement(ref produce);
                 }
@@ -62,20 +76,18 @@ public class ChunkMerger
         return chunk;
     }
     
-    private int GetChunkBufferSize(ChunkForWrite[] chunks)
+    private int GetChunkBufferSize(int mergersCount)
     {
         GC.Collect(2, GCCollectionMode.Forced, true, true);
-        var mergersCount = chunks.Length > Environment.ProcessorCount ? Environment.ProcessorCount : chunks.Length;
         long free = PcMemory.FreeMemoryBytes;
-        const int permanentCostBytes = 1_048_576;
-        double chunkBufferSize = (free / (mergersCount * 3)) - (permanentCostBytes * mergersCount);
+        const int permanentCostBytes = 3_048_576;
+        const int bufferCount = 3; // 1 - chank 1 + chank 2 + writeBuffer;
+        double chunkBufferSize = ( (free - (permanentCostBytes * mergersCount)) / (mergersCount * bufferCount));
         if (chunkBufferSize > int.MaxValue) return BinaryMath.ToNearestPow2(int.MaxValue);
-        return BinaryMath.ToNearestPow2((int)chunkBufferSize);
+        if (chunkBufferSize > int.MaxValue) return int.MaxValue;
+        return (int)chunkBufferSize;
     }
     
-    private ConcurrentQueue<ChunkForWrite> chunksQueue;
-    private volatile int produce = 0;
-    private readonly int maxProduce = Environment.ProcessorCount;
     
     class BigChunkNameGenerator
     {
