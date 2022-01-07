@@ -22,8 +22,8 @@ public class ChunkMerger
         var mergeThreads = maxProduce > allChunks.Length ? allChunks.Length : maxProduce; 
         int chunkBufSizeBytes = GetChunkBufferSize(mergeThreads);
         
-        ChunkForWrite chunk1;
-        while (true)
+        ChunkForWrite chunk1 = null!;
+        while (maxProduce > 0)
         {
             while (produce >= maxProduce)
             {
