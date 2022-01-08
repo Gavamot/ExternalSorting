@@ -12,7 +12,6 @@ try
     
     var t = Stopwatch.StartNew();
     var (output, config) = options.GetSettings();
-    config.Input = @"C:\dev\ExternalSorting\ExternalSortingGen\bin\Release\net6.0\publish\input.txt";
     Console.WriteLine($"Start sorting process from {config.Input} to {output} (chunks dir {config.ChunkFolder} | chunk size {config.ChunkSize} bytes), max-produce {config.MaxProduce}");
     var chunkProducer = new ChunkProducer(config);
     var chunks = await chunkProducer.CreateChunks();

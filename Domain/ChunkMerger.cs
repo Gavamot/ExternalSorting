@@ -32,7 +32,7 @@ public class ChunkMerger
 
             if (restOfChunks < maxProduce)
             {
-                chunkBufSizeBytes = GetChunkBufferSize(restOfChunks);
+                chunkBufSizeBytes += chunkBufSizeBytes / restOfChunks;
                 maxProduce--;
             }
             
@@ -80,10 +80,11 @@ public class ChunkMerger
     private int GetChunkBufferSize(int mergersCount)
     {
         GC.Collect(2, GCCollectionMode.Forced, true, true);
-        long free = PcMemory.FreeMemoryBytes;
-        const int permanentCostBytes = 3_048_576;
+        const double memoryCof = 0.95;
+        long free = (long)(PcMemory.FreeMemoryBytes * memoryCof);
+        const int permanentCostBytes = 1_048_576;
         const int bufferCount = 3; // 1 - chank 1 + chank 2 + writeBuffer;
-        double chunkBufferSize = ( (free - (permanentCostBytes * mergersCount)) / (mergersCount * bufferCount));
+        double chunkBufferSize = ((free - (permanentCostBytes * mergersCount)) / (mergersCount * bufferCount));
         if (chunkBufferSize > int.MaxValue) return BinaryMath.ToNearestPow2(int.MaxValue);
         if (chunkBufferSize > int.MaxValue) return int.MaxValue;
         return (int)chunkBufferSize;
